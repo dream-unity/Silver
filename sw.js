@@ -1,4 +1,4 @@
-const CACHE_NAME = 'silver-shell-v4';
+const CACHE_NAME = 'silver-shell-v5-recorder-viewport';
 const SHELL = [
   './', './index.html', './bootstrap.js',
   './src/shell.html', './src/styles.css', './src/app.js', './src/db.js', './src/archive.js',
