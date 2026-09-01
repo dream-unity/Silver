@@ -1,0 +1,242 @@
+<noscript><div class="noscript">Silver requires JavaScript to store and display your private journal.</div></noscript>
+
+  <div class="app" id="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand-row">
+        <button class="sidebar-close icon-button" id="sidebarClose" type="button" aria-label="Close navigation">
+          <svg aria-hidden="true"><use href="#icon-close"></use></svg>
+        </button>
+        <button class="brand" type="button" data-view="today" aria-label="Open Today">
+          <span class="brand-mark" aria-hidden="true"><i></i><b>S</b></span>
+          <span><strong>Silver</strong><small>PRIVATE JOURNAL</small></span>
+        </button>
+      </div>
+
+      <nav class="primary-nav" aria-label="Journal views">
+        <button type="button" data-view="today"><svg><use href="#icon-sun"></use></svg><span>Today</span></button>
+        <button type="button" data-view="timeline"><svg><use href="#icon-list"></use></svg><span>Timeline</span></button>
+        <button type="button" data-view="calendar"><svg><use href="#icon-calendar"></use></svg><span>Calendar</span></button>
+        <button type="button" data-view="memories"><svg><use href="#icon-history"></use></svg><span>On This Day</span></button>
+        <button type="button" data-view="media"><svg><use href="#icon-media"></use></svg><span>Media</span></button>
+        <button type="button" data-view="places"><svg><use href="#icon-pin"></use></svg><span>Places</span></button>
+        <button type="button" data-view="favorites"><svg><use href="#icon-star"></use></svg><span>Favourites</span></button>
+      </nav>
+
+      <section class="sidebar-section journals-section" aria-labelledby="journalsHeading">
+        <header>
+          <h2 id="journalsHeading">Journals</h2>
+          <button class="icon-button" id="addJournalButton" type="button" aria-label="Create journal"><svg><use href="#icon-plus"></use></svg></button>
+        </header>
+        <div id="journalList" class="journal-list"></div>
+      </section>
+
+      <div class="sidebar-spacer"></div>
+      <div class="sidebar-footer">
+        <button class="sidebar-action" id="installButton" type="button" hidden><svg><use href="#icon-download"></use></svg><span>Install Silver</span></button>
+        <button class="sidebar-action" id="settingsButton" type="button"><svg><use href="#icon-settings"></use></svg><span>Settings</span></button>
+        <div class="privacy-status"><span></span><div><strong>Stored on this device</strong><small id="storageStatus">Checking private storage…</small></div></div>
+      </div>
+    </aside>
+
+    <div class="sidebar-scrim" id="sidebarScrim" hidden></div>
+
+    <main class="main-shell">
+      <header class="topbar">
+        <button class="menu-button icon-button" id="menuButton" type="button" aria-label="Open navigation"><svg><use href="#icon-menu"></use></svg></button>
+        <div class="search-wrap">
+          <svg aria-hidden="true"><use href="#icon-search"></use></svg>
+          <input id="globalSearch" type="search" autocomplete="off" placeholder="Search every word, tag and title" aria-label="Search entries" />
+          <kbd>/</kbd>
+        </div>
+        <div class="topbar-actions">
+          <button class="icon-button" id="lockButton" type="button" aria-label="Lock Silver" hidden><svg><use href="#icon-lock"></use></svg></button>
+          <button class="new-entry-button" id="newEntryButton" type="button"><svg><use href="#icon-plus"></use></svg><span>New entry</span></button>
+        </div>
+      </header>
+      <section id="viewRoot" class="view-root" aria-live="polite"></section>
+    </main>
+  </div>
+
+  <dialog class="dialog editor-dialog" id="entryDialog">
+    <form method="dialog" id="entryForm" class="editor-form">
+      <header class="dialog-header editor-header">
+        <div>
+          <p class="eyebrow" id="editorEyebrow">NEW ENTRY</p>
+          <h2 id="editorHeading">Capture this moment</h2>
+        </div>
+        <div class="editor-header-actions">
+          <span class="save-state" id="draftState">Draft stays on this device</span>
+          <button class="icon-button" value="cancel" type="submit" aria-label="Close editor"><svg><use href="#icon-close"></use></svg></button>
+        </div>
+      </header>
+
+      <div class="editor-grid">
+        <section class="editor-main">
+          <input id="entryTitle" class="title-input" name="title" maxlength="240" placeholder="Entry title" autocomplete="off" />
+          <div class="format-toolbar" role="toolbar" aria-label="Text formatting">
+            <button type="button" data-format="bold" aria-label="Bold"><strong>B</strong></button>
+            <button type="button" data-format="italic" aria-label="Italic"><em>I</em></button>
+            <button type="button" data-format="heading" aria-label="Heading">H</button>
+            <button type="button" data-format="list" aria-label="Bulleted list">• List</button>
+            <button type="button" data-format="quote" aria-label="Quote">“</button>
+            <span></span>
+            <button type="button" id="previewToggle"><svg><use href="#icon-eye"></use></svg><b>Preview</b></button>
+          </div>
+          <textarea id="entryBody" name="body" rows="16" placeholder="Write freely. Markdown formatting is supported."></textarea>
+          <div id="entryPreview" class="entry-preview" hidden></div>
+
+          <section class="attachment-composer" aria-labelledby="attachmentsHeading">
+            <header>
+              <div><p class="eyebrow">MEDIA</p><h3 id="attachmentsHeading">Bring the entry to life</h3></div>
+              <span id="attachmentCount">0 / 30</span>
+            </header>
+            <div class="capture-actions">
+              <button type="button" id="recordVideoButton"><svg><use href="#icon-video"></use></svg><span><strong>Record video</strong><small>No fixed time limit</small></span></button>
+              <button type="button" id="recordAudioButton"><svg><use href="#icon-mic"></use></svg><span><strong>Record audio</strong><small>Voice reflection</small></span></button>
+              <label class="file-action"><svg><use href="#icon-paperclip"></use></svg><span><strong>Add media or files</strong><small>Photos, video, audio, PDF</small></span><input id="attachmentInput" type="file" multiple accept="image/*,video/*,audio/*,application/pdf,text/plain" /></label>
+            </div>
+            <div id="attachmentTray" class="attachment-tray"></div>
+          </section>
+        </section>
+
+        <aside class="editor-meta">
+          <label class="field"><span>Journal</span><select id="entryJournal" name="journal"></select></label>
+          <label class="field"><span>Date and time</span><input id="entryDate" name="date" type="datetime-local" /></label>
+          <label class="field"><span>Template</span><select id="templateSelect"><option value="">None</option></select></label>
+          <div class="field"><span>Mood</span><div class="mood-picker" id="moodPicker" role="radiogroup" aria-label="Mood"><button type="button" data-mood="radiant" title="Radiant">☀</button><button type="button" data-mood="good" title="Good">◕</button><button type="button" data-mood="steady" title="Steady">●</button><button type="button" data-mood="low" title="Low">◔</button><button type="button" data-mood="stormy" title="Stormy">☂</button></div></div>
+          <label class="field"><span>Tags</span><input id="entryTags" name="tags" autocomplete="off" placeholder="reflection, family, dream" /><small>Separate tags with commas.</small></label>
+          <div class="field location-field"><span>Place</span><div><input id="entryLocationLabel" placeholder="Optional place name" /><button type="button" class="icon-button" id="locateButton" aria-label="Use current location"><svg><use href="#icon-crosshair"></use></svg></button></div><small id="locationStatus">Location is added only when requested.</small></div>
+          <label class="favourite-toggle"><input id="entryFavorite" type="checkbox" /><span><svg><use href="#icon-star"></use></svg><b>Mark as favourite</b></span></label>
+          <button type="button" class="secondary-button" id="saveTemplateButton"><svg><use href="#icon-template"></use></svg>Save text as template</button>
+        </aside>
+      </div>
+
+      <footer class="dialog-footer editor-footer">
+        <button type="button" class="danger-text" id="deleteEntryButton" hidden>Delete entry</button>
+        <span></span>
+        <button type="button" class="secondary-button" id="cancelEntryButton">Cancel</button>
+        <button type="submit" class="primary-button" id="saveEntryButton" value="save"><svg><use href="#icon-check"></use></svg>Save entry</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <dialog class="dialog recorder-dialog" id="recorderDialog">
+    <section class="recorder-shell">
+      <header class="dialog-header">
+        <div><p class="eyebrow" id="recorderEyebrow">VIDEO REFLECTION</p><h2 id="recorderHeading">Record without interruption</h2></div>
+        <button class="icon-button" id="closeRecorderButton" type="button" aria-label="Close recorder"><svg><use href="#icon-close"></use></svg></button>
+      </header>
+      <div class="recorder-stage" id="recorderStage">
+        <video id="recorderPreview" autoplay muted playsinline></video>
+        <div class="audio-orb" id="audioOrb" hidden><i></i><span><svg><use href="#icon-mic"></use></svg></span></div>
+        <div class="recorder-idle" id="recorderIdle"><svg><use href="#icon-video"></use></svg><strong>Camera and microphone are off</strong><span>Silver records only after you explicitly begin.</span></div>
+        <div class="recording-badge" id="recordingBadge" hidden><i></i><span>RECORDING</span><b id="recordingClock">00:00</b></div>
+      </div>
+      <p class="recorder-message" id="recorderMessage" role="status">Permission will be requested from your browser.</p>
+      <div class="recorder-controls">
+        <button type="button" class="primary-button" id="prepareRecorderButton"><svg><use href="#icon-video"></use></svg>Turn on camera</button>
+        <button type="button" class="record-button" id="startRecorderButton" hidden><i></i>Start recording</button>
+        <button type="button" class="secondary-button" id="pauseRecorderButton" hidden>Pause</button>
+        <button type="button" class="primary-button finish-button" id="finishRecorderButton" hidden><svg><use href="#icon-check"></use></svg>Finish recording</button>
+        <button type="button" class="secondary-button" id="flipCameraButton" hidden><svg><use href="#icon-refresh"></use></svg>Flip camera</button>
+      </div>
+      <div class="transcript-panel" id="transcriptPanel" hidden><header><span>LIVE TRANSCRIPT</span><button type="button" id="useTranscriptButton">Add to entry</button></header><p id="liveTranscript"></p></div>
+    </section>
+  </dialog>
+
+  <dialog class="dialog settings-dialog" id="settingsDialog">
+    <form method="dialog" class="settings-shell" id="settingsForm">
+      <header class="dialog-header"><div><p class="eyebrow">SILVER</p><h2>Settings and ownership</h2></div><button class="icon-button" value="cancel" type="submit" aria-label="Close settings"><svg><use href="#icon-close"></use></svg></button></header>
+      <div class="settings-tabs" role="tablist" aria-label="Settings sections">
+        <button type="button" data-settings-tab="general" class="active">General</button>
+        <button type="button" data-settings-tab="journals">Journals</button>
+        <button type="button" data-settings-tab="templates">Templates</button>
+        <button type="button" data-settings-tab="privacy">Privacy</button>
+        <button type="button" data-settings-tab="data">Your data</button>
+      </div>
+      <div class="settings-content">
+        <section class="settings-panel active" data-settings-panel="general">
+          <article class="setting-card"><div><h3>Appearance</h3><p>Choose how Silver looks on this device.</p></div><label><span>Theme</span><select id="themeSelect"><option value="system">Use device setting</option><option value="light">Light</option><option value="dark">Dark</option></select></label></article>
+          <article class="setting-card"><div><h3>Daily reminder</h3><p>Silver can remind you while the app is active. Browser background delivery varies by device.</p></div><div class="setting-inline"><input id="reminderTime" type="time" /><button type="button" class="secondary-button" id="enableNotificationsButton">Enable notifications</button></div></article>
+          <article class="setting-card"><div><h3>Persistent local storage</h3><p>Ask the browser not to automatically clear journal data during storage pressure.</p></div><button type="button" class="secondary-button" id="persistStorageButton">Request persistence</button></article>
+        </section>
+
+        <section class="settings-panel" data-settings-panel="journals">
+          <div class="settings-panel-heading"><div><h3>Journals and collections</h3><p>Keep different parts of life separate without fragmenting your search.</p></div><button type="button" class="primary-button" id="settingsAddJournal">New journal</button></div>
+          <div id="journalManager" class="manager-list"></div>
+          <div class="collection-create"><input id="newCollectionName" maxlength="80" placeholder="New collection name" /><button type="button" class="secondary-button" id="addCollectionButton">Add collection</button></div>
+        </section>
+
+        <section class="settings-panel" data-settings-panel="templates">
+          <div class="settings-panel-heading"><div><h3>Writing templates</h3><p>Start recurring entries with useful structure rather than a blank page.</p></div></div>
+          <div id="templateManager" class="manager-list"></div>
+        </section>
+
+        <section class="settings-panel" data-settings-panel="privacy">
+          <article class="setting-card vertical"><div><h3>App lock</h3><p>A local passcode blocks casual access to the interface. It does not encrypt browser storage or replace device security.</p></div><div class="passcode-form"><input id="newPasscode" type="password" inputmode="numeric" minlength="4" maxlength="64" autocomplete="new-password" placeholder="New passcode" /><input id="confirmPasscode" type="password" inputmode="numeric" minlength="4" maxlength="64" autocomplete="new-password" placeholder="Confirm passcode" /><button type="button" class="primary-button" id="setPasscodeButton">Set passcode</button><button type="button" class="danger-text" id="removePasscodeButton" hidden>Remove passcode</button></div></article>
+          <article class="setting-card"><div><h3>Automatic lock</h3><p>Lock after inactivity while this page remains open.</p></div><label><span>After</span><select id="autoLockSelect"><option value="0">Never</option><option value="1">1 minute</option><option value="5">5 minutes</option><option value="15">15 minutes</option><option value="30">30 minutes</option></select></label></article>
+        </section>
+
+        <section class="settings-panel" data-settings-panel="data">
+          <article class="ownership-card"><svg><use href="#icon-shield"></use></svg><div><h3>Your journal remains yours</h3><p>Export a complete Silver archive containing entries, journals, tags and original media. No account or subscription is required.</p></div></article>
+          <div class="data-actions"><button type="button" class="primary-button" id="exportLibraryButton"><svg><use href="#icon-download"></use></svg>Export complete .silver archive</button><label class="secondary-button file-import"><svg><use href="#icon-upload"></use></svg>Import .silver archive<input id="importLibraryInput" type="file" accept=".silver,application/x-silver-archive,application/x-tar" /></label><button type="button" class="secondary-button" id="exportTextButton"><svg><use href="#icon-document"></use></svg>Export readable text</button></div>
+          <article class="storage-card"><div><span>Browser storage used</span><strong id="storageUsage">Calculating…</strong></div><div class="storage-meter"><i id="storageMeter"></i></div><p id="storageDetail">Silver is calculating this browser's available private storage.</p></article>
+          <article class="danger-zone"><div><h3>Erase this device</h3><p>Permanently delete every Silver entry and media file stored in this browser.</p></div><button type="button" class="danger-button" id="wipeLibraryButton">Erase all local data</button></article>
+        </section>
+      </div>
+      <footer class="dialog-footer"><span></span><button class="primary-button" value="cancel" type="submit">Done</button></footer>
+    </form>
+  </dialog>
+
+  <dialog class="dialog journal-dialog" id="journalDialog">
+    <form method="dialog" id="journalForm" class="small-dialog-form">
+      <header class="dialog-header"><div><p class="eyebrow">ORGANISE</p><h2 id="journalDialogTitle">Create journal</h2></div><button class="icon-button" value="cancel" type="submit" aria-label="Close"><svg><use href="#icon-close"></use></svg></button></header>
+      <label class="field"><span>Name</span><input id="journalName" required maxlength="80" autocomplete="off" placeholder="Journal name" /></label>
+      <label class="field"><span>Collection</span><select id="journalCollection"><option value="">No collection</option></select></label>
+      <fieldset class="colour-field"><legend>Colour</legend><div id="journalColours"><label><input type="radio" name="journalColour" value="#7c88a5" checked /><i style="--colour:#7c88a5"></i></label><label><input type="radio" name="journalColour" value="#8b7768" /><i style="--colour:#8b7768"></i></label><label><input type="radio" name="journalColour" value="#668b7b" /><i style="--colour:#668b7b"></i></label><label><input type="radio" name="journalColour" value="#8d6e89" /><i style="--colour:#8d6e89"></i></label><label><input type="radio" name="journalColour" value="#6f8294" /><i style="--colour:#6f8294"></i></label><label><input type="radio" name="journalColour" value="#9a745f" /><i style="--colour:#9a745f"></i></label></div></fieldset>
+      <footer class="dialog-footer"><button type="button" class="danger-text" id="deleteJournalButton" hidden>Delete journal</button><span></span><button class="secondary-button" value="cancel" type="submit">Cancel</button><button class="primary-button" id="saveJournalButton" value="save" type="submit">Save journal</button></footer>
+    </form>
+  </dialog>
+
+  <dialog class="dialog media-dialog" id="mediaDialog">
+    <section class="media-viewer"><header class="dialog-header"><div><p class="eyebrow" id="mediaViewerType">MEDIA</p><h2 id="mediaViewerTitle">Attachment</h2></div><button class="icon-button" id="closeMediaViewer" type="button"><svg><use href="#icon-close"></use></svg></button></header><div id="mediaViewerBody" class="media-viewer-body"></div><footer class="dialog-footer"><button type="button" class="secondary-button" id="downloadMediaButton"><svg><use href="#icon-download"></use></svg>Download original</button><span></span><button type="button" class="primary-button" id="openMediaEntryButton">Open entry</button></footer></section>
+  </dialog>
+
+  <section class="lock-screen" id="lockScreen" hidden aria-labelledby="lockHeading">
+    <div class="lock-card"><span class="brand-mark large" aria-hidden="true"><i></i><b>S</b></span><p class="eyebrow">PRIVATE JOURNAL</p><h1 id="lockHeading">Silver is locked</h1><p>Enter the local passcode for this browser.</p><form id="unlockForm"><input id="unlockPasscode" type="password" inputmode="numeric" autocomplete="current-password" placeholder="Passcode" aria-label="Passcode" /><button class="primary-button" type="submit">Unlock</button></form><span class="lock-error" id="lockError" role="alert"></span></div>
+  </section>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <svg class="svg-sprite" aria-hidden="true" focusable="false">
+    <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></symbol>
+    <symbol id="icon-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18" /></symbol>
+    <symbol id="icon-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" /></symbol>
+    <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></symbol>
+    <symbol id="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.5"/><path d="M12 2v3M12 19v3M4.9 4.9 7 7M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/></symbol>
+    <symbol id="icon-list" viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r=".8"/><circle cx="4" cy="12" r=".8"/><circle cx="4" cy="18" r=".8"/></symbol>
+    <symbol id="icon-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></symbol>
+    <symbol id="icon-history" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.3-5.7L4 8.6"/><path d="M4 4v4.6h4.6M12 8v5l3 2"/></symbol>
+    <symbol id="icon-media" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 5-5 3 3 2-2 6 6"/></symbol>
+    <symbol id="icon-pin" viewBox="0 0 24 24"><path d="M12 22s7-6.4 7-13a7 7 0 0 0-14 0c0 6.6 7 13 7 13Z"/><circle cx="12" cy="9" r="2.2"/></symbol>
+    <symbol id="icon-star" viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z"/></symbol>
+    <symbol id="icon-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3A1.7 1.7 0 0 0 10 3v-.2h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1Z"/></symbol>
+    <symbol id="icon-lock" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></symbol>
+    <symbol id="icon-download" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></symbol>
+    <symbol id="icon-upload" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 20h16"/></symbol>
+    <symbol id="icon-video" viewBox="0 0 24 24"><rect x="3" y="6" width="14" height="12" rx="2"/><path d="m17 10 4-2v8l-4-2"/></symbol>
+    <symbol id="icon-mic" viewBox="0 0 24 24"><rect x="8" y="3" width="8" height="13" rx="4"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M9 21h6"/></symbol>
+    <symbol id="icon-paperclip" viewBox="0 0 24 24"><path d="m9 12 6.5-6.5a3 3 0 0 1 4.2 4.2L11 18.4a5 5 0 0 1-7.1-7.1L13 2.2"/></symbol>
+    <symbol id="icon-eye" viewBox="0 0 24 24"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.5"/></symbol>
+    <symbol id="icon-crosshair" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></symbol>
+    <symbol id="icon-template" viewBox="0 0 24 24"><path d="M6 3h12a2 2 0 0 1 2 2v16l-8-4-8 4V5a2 2 0 0 1 2-2Z"/></symbol>
+    <symbol id="icon-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="icon-refresh" viewBox="0 0 24 24"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.1 8a7 7 0 0 1 11.8-1L20 12M4 12l2.1 5a7 7 0 0 0 11.8-1"/></symbol>
+    <symbol id="icon-shield" viewBox="0 0 24 24"><path d="M12 3 20 6v6c0 5-3.4 8.1-8 10-4.6-1.9-8-5-8-10V6l8-3Z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></symbol>
+    <symbol id="icon-document" viewBox="0 0 24 24"><path d="M6 2h8l4 4v16H6V2Z"/><path d="M14 2v5h5M9 12h6M9 16h6"/></symbol>
+    <symbol id="icon-edit" viewBox="0 0 24 24"><path d="m14 5 5 5M4 20l3.5-.7L19 7.8a2 2 0 0 0-2.8-2.8L4.7 16.5 4 20Z"/></symbol>
+    <symbol id="icon-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 11v6M14 11v6"/></symbol>
+    <symbol id="icon-share" viewBox="0 0 24 24"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.9 7.6-4.5M8.2 13.1l7.6 4.5"/></symbol>
+    <symbol id="icon-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></symbol>
+    <symbol id="icon-play" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m10 8 6 4-6 4V8Z"/></symbol>
+  </svg>
