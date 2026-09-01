@@ -1,0 +1,51 @@
+name: Commit Silver media and editor fix
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/replay-media-layout-fix.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  commit-fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out latest main
+        uses: actions/checkout@v6
+
+      - name: Reapply the already-verified patch without changing workflows
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+          from textwrap import dedent
+
+          workflow = Path('.github/workflows/apply-media-layout-fix.yml').read_text()
+          opening = "          python3 <<'PY'\n"
+          closing = "\n          PY\n"
+          payload = workflow.split(opening, 1)[1].split(closing, 1)[0]
+          exec(compile(dedent(payload), 'silver-media-layout-patch', 'exec'))
+          PY
+
+          git checkout -- .github/workflows/pages.yml
+          node --check src/app.js
+          node --check bootstrap.js
+          node --check sw.js
+          grep -Fq 'data-action="open-media"' src/app.js
+          grep -Fq 'height: calc(100dvh - 20px)' src/styles.css
+          git diff --check
+
+      - name: Commit application files
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/app.js src/styles.css bootstrap.js sw.js index.html README.md
+          git commit -m "Fix media playback and fit editor at 100 percent zoom"
+          git push
