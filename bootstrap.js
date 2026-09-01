@@ -1,7 +1,10 @@
+const BUILD = '20260901-media-layout-1';
+const versioned = path => `${path}?v=${BUILD}`;
+
 const assets = {
-  shell: './src/shell.html',
-  styles: './src/styles.css',
-  app: './src/app.js'
+  shell: versioned('./src/shell.html'),
+  styles: versioned('./src/styles.css'),
+  app: versioned('./src/app.js')
 };
 
 async function fetchText(path) {
