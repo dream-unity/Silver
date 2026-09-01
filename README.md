@@ -1,16 +1,18 @@
 # Silver
 
-Silver is an original, private, video-first journal built as a static Progressive Web App. It runs directly from GitHub Pages, requires no account or subscription, and stores entries and original media in the browser's IndexedDB database.
+[Open the live Silver journal](https://dream-unity.github.io/Silver/)
 
-Silver is not affiliated with Day One or Automattic. Its interface and implementation are original. The product direction is informed by mature journal-app capabilities while preserving local ownership and removing artificial recording-duration limits.
+Silver is an original, private, video-first journal built as a static Progressive Web App. It runs directly from GitHub Pages, requires no account or subscription, and stores entries and original media in the current browser's IndexedDB database.
+
+Silver is not affiliated with Day One or Automattic. Its implementation and visual identity are original. The product direction borrows the strongest general patterns from mature journal applications while prioritising local ownership, serious video reflection and unrestricted customisation.
 
 ## Included in this release
 
-- Direct video recording with camera switching, pause/resume and no fixed five-minute limit
+- Direct video recording with camera switching, pause/resume and no artificial five-minute limit
 - Direct audio recording and optional browser-supported live transcription
 - Photos, existing video/audio, PDFs and files; up to 30 attachments per entry
-- Clickable editor attachments that open images, documents and playable audio/video in a focused viewer
-- A viewport-fitted desktop editor designed to remain fully usable at normal 100% browser zoom
+- Clickable editor attachments and a focused image/document/audio/video viewer
+- A viewport-fitted desktop editor usable at normal 100% browser zoom
 - Written entries with Markdown formatting and preview
 - Device-local draft recovery and save status
 - Multiple journals grouped into collections
@@ -18,7 +20,7 @@ Silver is not affiliated with Day One or Automattic. Its interface and implement
 - Today dashboard, writing streak and word statistics
 - Timeline, global full-text search and journal filtering
 - Calendar, On This Day, Media, Places and Favourites views
-- Complete `.silver` archive export/import retaining original media
+- Lossless `.silver` archive export/import retaining original media
 - Readable text export and per-entry archive export
 - Local app lock using PBKDF2-SHA-256 passcode verification
 - Storage-persistence request and live browser-quota estimate
@@ -31,15 +33,19 @@ Silver is not affiliated with Day One or Automattic. Its interface and implement
 
 Entries and media remain in the current browser profile unless exported. Silver contains no analytics, advertising, remote database, user account, telemetry or tracking code.
 
-The optional app lock prevents casual access to the interface; it is not full encryption of the browser's IndexedDB files. Device security and regular `.silver` archive exports remain important. Silver derives a verifier with PBKDF2-SHA-256 and never stores the passcode itself.
-
 Camera, microphone, speech-recognition, notification and location permissions are requested only when the corresponding feature is deliberately used.
 
-## Data safety
+The optional app lock prevents casual access to the interface. It does **not** encrypt the browser's IndexedDB files or replace device security. Silver derives a verifier with PBKDF2-SHA-256 and never stores the passcode itself.
+
+## Data ownership and backups
 
 Browser storage is not a substitute for a backup. Use **Settings → Your data → Export complete .silver archive** regularly, especially before clearing browser data, changing devices or reinstalling the browser.
 
-A complete `.silver` archive is lossless: it carries journals, collections, entries, templates, settings and original attachment blobs. The readable text export is for convenient reading and does not replace the complete archive.
+A complete `.silver` archive is lossless: it carries journals, collections, entries, templates, settings and original attachment blobs. The readable text export is convenient for reading but does not replace the complete archive.
+
+## Current platform boundary
+
+This static release does not pretend to provide automatic multi-device cloud synchronisation or end-to-end encrypted remote backup. Those capabilities require a trusted synchronisation service or user-owned storage integration. Complete archives provide lossless manual transfer today without surrendering journal data to this site.
 
 ## Run locally
 
@@ -49,40 +55,34 @@ Silver should be served over HTTP rather than opened directly as a file:
 python3 -m http.server 8080
 ```
 
-Then open `http://localhost:8080` in a current version of Chrome, Edge, Firefox or Safari. Camera and microphone recording require a secure context (`https://` or localhost).
-
-## Deployment
-
-The repository is designed for GitHub Pages at the `main` branch root. All paths are relative, so the application works at a project URL such as `/Silver/`. The Pages workflow publishes the repository as a static artifact without a build server or third-party dependency.
+Then open `http://localhost:8080` in a current version of Chrome, Edge, Firefox or Safari. Camera and microphone recording require a secure context: HTTPS or localhost.
 
 ## Runtime architecture
 
-- `index.html` — small accessible boot shell and failure fallback
-- `bootstrap.js` — loads the readable application bundle and retains the packaged release as a fallback
-- `src/shell.html` — canonical accessible application markup
-- `src/styles.css` — canonical responsive visual system
-- `src/app.js` — canonical application engine
-- `shell.html.gz`, `styles.css.gz`, `app.source.1.b64` … `app.source.8.b64` — backward-compatible packaged fallback
+- `index.html` — accessible startup shell and visible failure fallback
+- `bootstrap.js` — loads the canonical markup, visual system and application module
+- `src/shell.html` — complete accessible application interface
+- `src/styles.css` — responsive desktop/mobile visual system
+- `src/app.js` — application state, rendering, editor, capture and interaction engine
+- `src/db.js`, `src/archive.js` — small module routes used by the application engine
 - `db.js` — IndexedDB schema and atomic persistence operations
 - `archive.js` — native TAR-based `.silver` export/import without third-party libraries
-- `sw.js` — offline application-shell service worker
+- `sw.js` — offline application-shell cache with network-first runtime updates
 - `manifest.webmanifest` — install metadata, shortcuts and share target
+- `.github/workflows/pages.yml` — syntax checks, deterministic Pages deployment, published-file comparison and live-browser verification
 
-The segmented source format is a transport/deployment detail rather than minification or obfuscation. Reconstruct the readable source at any time with:
-
-```bash
-mkdir -p unpacked
-cat app.source.{1..8}.b64 | base64 --decode | gzip --decompress > unpacked/app.js
-gzip --decompress --stdout shell.html.gz > unpacked/shell.html
-gzip --decompress --stdout styles.css.gz > unpacked/styles.css
-```
-
-On macOS, use `base64 -D` instead of `base64 --decode`. The included `tools/unpack-source.sh` handles GNU and BSD base64 automatically.
+All runtime source is readable in `main`; no build server, package manager or third-party JavaScript dependency is required.
 
 ## Verification performed
 
-The release was exercised in desktop and mobile Chromium layouts. Verification covered entry creation, video recording with pause/resume, audio and file attachments, IndexedDB persistence, search, calendar and media navigation, passcode locking, complete archive export, fresh-database import with media retained, responsive navigation and browser-console errors. Repository Git blob hashes were then compared against the tested local build before deployment.
+The release was exercised in desktop and mobile Chromium layouts. Local verification covered entry creation, fake-camera video recording with pause/resume, audio and file attachments, IndexedDB persistence, search, calendar and media navigation, passcode locking, complete archive export, fresh-database import with media retained, responsive navigation and browser-console errors.
 
-## Current platform boundary
+Every Pages deployment then performs a second independent live check. The workflow compares published runtime files with `main`, opens the public GitHub Pages application through Chrome DevTools, waits for IndexedDB initialisation, opens and saves a test entry, confirms that it reappears in the interface, captures a screenshot and fails on page exceptions or console errors.
 
-This static release intentionally does not claim automatic multi-device cloud synchronization or end-to-end encrypted remote backup. Those capabilities require a trusted synchronization service or a user-owned storage integration. Complete archives provide lossless manual transfer today without surrendering journal data to this site.
+## Deployment
+
+The repository is deployed from `main` to:
+
+https://dream-unity.github.io/Silver/
+
+All application paths are relative, so the PWA works correctly under the `/Silver/` project path.
