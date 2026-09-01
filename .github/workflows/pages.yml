@@ -120,7 +120,7 @@ jobs:
           node --check /tmp/silver-live/src/archive.js
           python3 -m json.tool /tmp/silver-live/manifest.webmanifest >/dev/null
 
-      - name: Open the deployed app in Chrome
+      - name: Exercise the deployed app through Chrome DevTools
         shell: bash
         run: |
           set -euo pipefail
@@ -128,24 +128,8 @@ jobs:
           CHROME="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
           test -n "$CHROME"
           "$CHROME" --version
+          node --version
           rm -rf /tmp/silver-chrome
-
-          if ! "$CHROME" \
-            --headless=new \
-            --no-sandbox \
-            --disable-gpu \
-            --disable-dev-shm-usage \
-            --hide-scrollbars \
-            --user-data-dir=/tmp/silver-chrome \
-            --window-size=1440,900 \
-            --virtual-time-budget=20000 \
-            --dump-dom \
-            "${BASE}?smoke=${GITHUB_SHA}" \
-            > /tmp/silver-live/dom.html \
-            2> /tmp/silver-live/chrome.log; then
-            cat /tmp/silver-live/chrome.log >&2
-            exit 1
-          fi
 
           "$CHROME" \
             --headless=new \
@@ -153,38 +137,236 @@ jobs:
             --disable-gpu \
             --disable-dev-shm-usage \
             --hide-scrollbars \
-            --user-data-dir=/tmp/silver-chrome-shot \
+            --use-fake-device-for-media-stream \
+            --use-fake-ui-for-media-stream \
+            --autoplay-policy=no-user-gesture-required \
+            --remote-debugging-address=127.0.0.1 \
+            --remote-debugging-port=9222 \
+            --user-data-dir=/tmp/silver-chrome \
             --window-size=1440,900 \
-            --virtual-time-budget=20000 \
-            --screenshot=/tmp/silver-live/silver-live.png \
-            "${BASE}?screenshot=${GITHUB_SHA}" \
-            >> /tmp/silver-live/chrome.log 2>&1
+            about:blank \
+            > /tmp/silver-live/chrome.log 2>&1 &
+          CHROME_PID=$!
+          cleanup() {
+            kill "$CHROME_PID" 2>/dev/null || true
+            wait "$CHROME_PID" 2>/dev/null || true
+          }
+          trap cleanup EXIT
 
-          test -s /tmp/silver-live/silver-live.png
-
-          assert_dom() {
-            local marker="$1"
-            local description="$2"
-            if grep -Fq "$marker" /tmp/silver-live/dom.html; then
-              echo "PASS: $description"
-            else
-              echo "FAIL: $description (missing marker: $marker)" >&2
-              tail -240 /tmp/silver-live/dom.html >&2
-              cat /tmp/silver-live/chrome.log >&2
-              exit 1
+          for attempt in {1..80}; do
+            if curl --fail --silent http://127.0.0.1:9222/json/version \
+              --output /tmp/silver-live/version.json; then
+              break
             fi
+            sleep 0.25
+          done
+          test -s /tmp/silver-live/version.json
+
+          export TARGET_URL="${BASE}?smoke=${GITHUB_SHA}"
+          ENCODED_URL="$(python3 - <<'PY'
+          import os
+          import urllib.parse
+          print(urllib.parse.quote(os.environ['TARGET_URL'], safe=''))
+          PY
+          )"
+          curl --fail --silent --request PUT \
+            "http://127.0.0.1:9222/json/new?${ENCODED_URL}" \
+            --output /tmp/silver-live/target.json
+
+          cat > /tmp/silver-live/verify-live.mjs <<'NODE'
+          import fs from 'node:fs';
+
+          if (typeof WebSocket !== 'function') {
+            throw new Error(`Node ${process.version} does not expose the WebSocket API required for the Chrome DevTools check.`);
           }
 
-          assert_dom 'data-journal-id="journal-personal"' 'IndexedDB seeded the Personal journal'
-          assert_dom '<span>Personal</span>' 'The journal sidebar rendered'
-          assert_dom 'Your latest entries' 'The Today view rendered'
+          const target = JSON.parse(fs.readFileSync('/tmp/silver-live/target.json', 'utf8'));
+          if (!target.webSocketDebuggerUrl) throw new Error('Chrome did not expose a page debugging endpoint.');
 
-          if grep -Fq 'Silver could not open' /tmp/silver-live/dom.html; then
-            echo 'FAIL: the application rendered its fatal-error state.' >&2
-            exit 1
-          fi
+          const socket = new WebSocket(target.webSocketDebuggerUrl);
+          const pending = new Map();
+          const exceptions = [];
+          const consoleErrors = [];
+          const logErrors = [];
+          let sequence = 0;
 
-          printf '### Live verification passed\n\n- Published files match `main`.\n- The direct readable runtime loaded successfully.\n- IndexedDB initialized the default journal.\n- The Today view rendered in headless Chrome.\n' >> "$GITHUB_STEP_SUMMARY"
+          const sleep = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
+
+          await new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => reject(new Error('Timed out connecting to Chrome DevTools.')), 10_000);
+            socket.addEventListener('open', () => {
+              clearTimeout(timeout);
+              resolve();
+            }, { once: true });
+            socket.addEventListener('error', () => {
+              clearTimeout(timeout);
+              reject(new Error('Chrome DevTools WebSocket connection failed.'));
+            }, { once: true });
+          });
+
+          socket.addEventListener('message', event => {
+            const message = JSON.parse(String(event.data));
+            if (message.id) {
+              const operation = pending.get(message.id);
+              if (!operation) return;
+              pending.delete(message.id);
+              clearTimeout(operation.timeout);
+              if (message.error) operation.reject(new Error(`${operation.method}: ${message.error.message}`));
+              else operation.resolve(message.result || {});
+              return;
+            }
+
+            if (message.method === 'Runtime.exceptionThrown') {
+              exceptions.push(message.params?.exceptionDetails || message.params);
+            } else if (message.method === 'Runtime.consoleAPICalled' && message.params?.type === 'error') {
+              consoleErrors.push(message.params.args?.map(argument => argument.value || argument.description).join(' ') || 'console.error');
+            } else if (message.method === 'Log.entryAdded' && ['error', 'fatal'].includes(message.params?.entry?.level)) {
+              logErrors.push(message.params.entry);
+            }
+          });
+
+          function command(method, params = {}) {
+            const id = ++sequence;
+            return new Promise((resolve, reject) => {
+              const timeout = setTimeout(() => {
+                pending.delete(id);
+                reject(new Error(`Timed out waiting for ${method}.`));
+              }, 15_000);
+              pending.set(id, { resolve, reject, timeout, method });
+              socket.send(JSON.stringify({ id, method, params }));
+            });
+          }
+
+          async function evaluate(expression) {
+            const result = await command('Runtime.evaluate', {
+              expression,
+              awaitPromise: true,
+              returnByValue: true,
+              userGesture: true
+            });
+            if (result.exceptionDetails) {
+              throw new Error(result.exceptionDetails.exception?.description || result.exceptionDetails.text || 'Browser evaluation failed.');
+            }
+            return result.result?.value;
+          }
+
+          await command('Page.enable');
+          await command('Runtime.enable');
+          await command('Log.enable');
+          await command('Page.bringToFront');
+
+          const readinessExpression = `(() => {
+            const text = document.body?.innerText || '';
+            const journal = document.querySelector('[data-journal-id="journal-personal"]');
+            return {
+              title: document.title,
+              readyState: document.readyState,
+              journalReady: Boolean(journal),
+              journalText: journal?.textContent?.trim() || '',
+              todayReady: text.includes('Your latest entries'),
+              fatal: text.includes('Silver could not open'),
+              viewLength: document.querySelector('#viewRoot')?.innerText?.length || 0,
+              bodyExcerpt: text.slice(0, 1200)
+            };
+          })()`;
+
+          let readiness = null;
+          for (let attempt = 0; attempt < 120; attempt += 1) {
+            try {
+              readiness = await evaluate(readinessExpression);
+              if (readiness?.fatal) throw new Error(`Silver rendered its fatal state: ${readiness.bodyExcerpt}`);
+              if (readiness?.journalReady && readiness?.todayReady && readiness?.viewLength > 0) break;
+            } catch (error) {
+              if (String(error.message).includes('fatal state')) throw error;
+            }
+            await sleep(250);
+          }
+
+          if (!readiness?.journalReady || !readiness?.todayReady || readiness?.viewLength <= 0) {
+            throw new Error(`Silver did not finish initializing within 30 seconds. Last state: ${JSON.stringify(readiness)}`);
+          }
+
+          await evaluate(`(() => {
+            document.querySelector('#newEntryButton')?.click();
+            return true;
+          })()`);
+
+          let editorOpen = false;
+          for (let attempt = 0; attempt < 40; attempt += 1) {
+            editorOpen = Boolean(await evaluate(`document.querySelector('#entryDialog')?.open`));
+            if (editorOpen) break;
+            await sleep(100);
+          }
+          if (!editorOpen) throw new Error('The live New entry control did not open the editor.');
+
+          await evaluate(`(() => {
+            const setValue = (selector, value) => {
+              const control = document.querySelector(selector);
+              if (!control) throw new Error('Missing control: ' + selector);
+              control.value = value;
+              control.dispatchEvent(new Event('input', { bubbles: true }));
+            };
+            setValue('#entryTitle', 'Live deployment verification');
+            setValue('#entryBody', 'Silver created and preserved this entry during the live GitHub Pages verification.');
+            document.querySelector('#saveEntryButton')?.click();
+            return true;
+          })()`);
+
+          let saved = null;
+          for (let attempt = 0; attempt < 120; attempt += 1) {
+            saved = await evaluate(`(() => {
+              const text = document.body?.innerText || '';
+              return {
+                editorOpen: Boolean(document.querySelector('#entryDialog')?.open),
+                entryVisible: text.includes('Live deployment verification'),
+                cardCount: document.querySelectorAll('.entry-card').length,
+                fatal: text.includes('Silver could not open')
+              };
+            })()`);
+            if (saved?.fatal) throw new Error('Silver entered its fatal state while saving the live test entry.');
+            if (!saved?.editorOpen && saved?.entryVisible && saved?.cardCount > 0) break;
+            await sleep(250);
+          }
+
+          if (saved?.editorOpen || !saved?.entryVisible || saved?.cardCount < 1) {
+            throw new Error(`The live entry did not persist and render correctly. Last state: ${JSON.stringify(saved)}`);
+          }
+
+          const html = await evaluate('document.documentElement.outerHTML');
+          fs.writeFileSync('/tmp/silver-live/dom.html', html);
+          const screenshot = await command('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true });
+          fs.writeFileSync('/tmp/silver-live/silver-live.png', Buffer.from(screenshot.data, 'base64'));
+
+          const evidence = {
+            url: process.env.TARGET_URL,
+            checkedAt: new Date().toISOString(),
+            readiness,
+            saved,
+            exceptions,
+            consoleErrors,
+            logErrors
+          };
+          fs.writeFileSync('/tmp/silver-live/browser-evidence.json', JSON.stringify(evidence, null, 2));
+
+          if (exceptions.length || consoleErrors.length) {
+            throw new Error(`The live app reported browser errors: ${JSON.stringify({ exceptions, consoleErrors })}`);
+          }
+
+          console.log('PASS: Silver initialized its IndexedDB journal.');
+          console.log('PASS: The Today view rendered.');
+          console.log('PASS: New entry opened, saved, persisted and appeared in the live interface.');
+          console.log('PASS: No page exceptions or console errors were reported.');
+          socket.close();
+          NODE
+
+          node /tmp/silver-live/verify-live.mjs
+          test -s /tmp/silver-live/dom.html
+          test -s /tmp/silver-live/silver-live.png
+          test -s /tmp/silver-live/browser-evidence.json
+          grep -Fq 'data-journal-id="journal-personal"' /tmp/silver-live/dom.html
+          grep -Fq 'Live deployment verification' /tmp/silver-live/dom.html
+
+          printf '### Live verification passed\n\n- Published files match `main`.\n- Silver initialized its IndexedDB journal.\n- The Today view rendered in a persistent Chrome session.\n- A live entry opened, saved, persisted and appeared in the interface.\n- Chrome reported no page exceptions or console errors.\n' >> "$GITHUB_STEP_SUMMARY"
 
       - name: Preserve live verification evidence
         if: always()
@@ -195,5 +377,6 @@ jobs:
             /tmp/silver-live/silver-live.png
             /tmp/silver-live/dom.html
             /tmp/silver-live/chrome.log
+            /tmp/silver-live/browser-evidence.json
           if-no-files-found: warn
           retention-days: 14
