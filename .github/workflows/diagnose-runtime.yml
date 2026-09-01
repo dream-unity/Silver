@@ -37,39 +37,42 @@ jobs:
 
           python3 -m pip install --quiet websocket-client
           python3 <<'PY'
-          import json, queue, time, urllib.request
+          import json, time, urllib.parse, urllib.request
           import websocket
 
           deadline = time.time() + 20
-          targets = None
           while time.time() < deadline:
               try:
-                  with urllib.request.urlopen('http://127.0.0.1:9222/json/list', timeout=2) as response:
-                      targets = json.load(response)
-                  if targets:
-                      break
+                  with urllib.request.urlopen('http://127.0.0.1:9222/json/version', timeout=2) as response:
+                      json.load(response)
+                  break
               except Exception:
                   time.sleep(.25)
-          if not targets:
+          else:
               raise SystemExit('Chrome DevTools endpoint did not become available')
 
-          ws = websocket.create_connection(targets[0]['webSocketDebuggerUrl'], timeout=2)
+          target_url = 'http://127.0.0.1:8765/?diagnostic=1'
+          request = urllib.request.Request(
+              'http://127.0.0.1:9222/json/new?' + urllib.parse.quote(target_url, safe=':/?=&'),
+              method='PUT'
+          )
+          with urllib.request.urlopen(request, timeout=5) as response:
+              target = json.load(response)
+
+          ws = websocket.create_connection(target['webSocketDebuggerUrl'], timeout=2)
           next_id = 0
-          pending = {}
           events = []
 
           def send(method, params=None):
               global next_id
               next_id += 1
               ws.send(json.dumps({'id': next_id, 'method': method, 'params': params or {}}))
-              pending[next_id] = method
               return next_id
 
           send('Runtime.enable')
           send('Log.enable')
           send('Network.enable')
           send('Page.enable')
-          send('Page.navigate', {'url': 'http://127.0.0.1:8765/?diagnostic=1'})
 
           end = time.time() + 15
           while time.time() < end:
@@ -102,7 +105,8 @@ jobs:
               identifier = message.get('id')
               if identifier in ids:
                   name = ids.pop(identifier)
-                  results[name] = message.get('result', {}).get('result', {}).get('value', message)
+                  result = message.get('result', {}).get('result', {})
+                  results[name] = result.get('value', result.get('description', message))
 
           print('=== RUNTIME RESULTS ===')
           print(json.dumps(results, indent=2, default=str))
