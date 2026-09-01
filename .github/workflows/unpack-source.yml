@@ -22,7 +22,7 @@ jobs:
         run: |
           set -euo pipefail
           rm -rf src
-          ./tools/unpack-source.sh src
+          sh tools/unpack-source.sh src
           node --check src/app.js
           test -s src/shell.html
           test -s src/styles.css
