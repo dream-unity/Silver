@@ -1,10 +1,7 @@
-const CACHE_NAME = 'silver-shell-v2';
+const CACHE_NAME = 'silver-shell-v3';
 const SHELL = [
   './', './index.html', './bootstrap.js',
-  './src/shell.html', './src/styles.css', './src/app.js',
-  './shell.html.gz', './styles.css.gz',
-  './app.source.1.b64', './app.source.2.b64', './app.source.3.b64', './app.source.4.b64',
-  './app.source.5.b64', './app.source.6.b64', './app.source.7.b64', './app.source.8.b64',
+  './src/shell.html', './src/styles.css', './src/app.js', './src/db.js', './src/archive.js',
   './db.js', './archive.js', './manifest.webmanifest', './icons/silver-mark.svg'
 ];
 
