@@ -1,0 +1,339 @@
+name: Verify Silver recorder viewport
+
+on:
+  workflow_run:
+    workflows: ["Deploy Silver to GitHub Pages"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: silver-recorder-viewport
+  cancel-in-progress: true
+
+jobs:
+  recorder-viewport:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
+    runs-on: ubuntu-latest
+    env:
+      SITE_URL: https://dream-unity.github.io/Silver/
+      TEST_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+    steps:
+      - name: Confirm the viewport fix is published
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/silver-recorder
+          for attempt in {1..30}; do
+            curl --fail --silent --show-error --location \
+              "${SITE_URL}?recorder-fix=${TEST_SHA}&attempt=${attempt}" \
+              --output /tmp/silver-recorder/index.html || true
+            if grep -Fq 'Silver recorder viewport containment fix' /tmp/silver-recorder/index.html 2>/dev/null; then
+              break
+            fi
+            sleep 2
+          done
+          grep -Fq 'Silver recorder viewport containment fix' /tmp/silver-recorder/index.html
+          grep -Fq '20260901-recorder-viewport-2' /tmp/silver-recorder/index.html
+
+      - name: Exercise idle, prepared, recording and paused controls at the reported viewport
+        shell: bash
+        run: |
+          set -euo pipefail
+          CHROME="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          test -n "$CHROME"
+          "$CHROME" --version
+          node --version
+          rm -rf /tmp/silver-recorder/chrome-profile
+
+          "$CHROME" \
+            --headless=new \
+            --no-sandbox \
+            --disable-gpu \
+            --disable-dev-shm-usage \
+            --hide-scrollbars \
+            --use-fake-device-for-media-stream \
+            --use-fake-ui-for-media-stream \
+            --autoplay-policy=no-user-gesture-required \
+            --remote-debugging-address=127.0.0.1 \
+            --remote-debugging-port=9223 \
+            --user-data-dir=/tmp/silver-recorder/chrome-profile \
+            --window-size=1024,682 \
+            about:blank \
+            > /tmp/silver-recorder/chrome.log 2>&1 &
+          CHROME_PID=$!
+          cleanup() {
+            kill "$CHROME_PID" 2>/dev/null || true
+            wait "$CHROME_PID" 2>/dev/null || true
+          }
+          trap cleanup EXIT
+
+          for attempt in {1..80}; do
+            if curl --fail --silent http://127.0.0.1:9223/json/version \
+              --output /tmp/silver-recorder/version.json; then
+              break
+            fi
+            sleep 0.25
+          done
+          test -s /tmp/silver-recorder/version.json
+
+          ENCODED_URL="$(python3 - <<'PY'
+          import os
+          import urllib.parse
+          url = f"{os.environ['SITE_URL']}?recorder-viewport={os.environ['TEST_SHA']}"
+          print(urllib.parse.quote(url, safe=''))
+          PY
+          )"
+          curl --fail --silent --request PUT \
+            "http://127.0.0.1:9223/json/new?${ENCODED_URL}" \
+            --output /tmp/silver-recorder/target.json
+
+          cat > /tmp/silver-recorder/verify-recorder.mjs <<'NODE'
+          import fs from 'node:fs';
+
+          if (typeof WebSocket !== 'function') {
+            throw new Error(`Node ${process.version} does not expose WebSocket.`);
+          }
+
+          const target = JSON.parse(fs.readFileSync('/tmp/silver-recorder/target.json', 'utf8'));
+          if (!target.webSocketDebuggerUrl) throw new Error('Chrome did not expose a page debugging endpoint.');
+
+          const socket = new WebSocket(target.webSocketDebuggerUrl);
+          const pending = new Map();
+          const exceptions = [];
+          const consoleErrors = [];
+          let sequence = 0;
+          const sleep = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
+
+          await new Promise((resolve, reject) => {
+            const timer = setTimeout(() => reject(new Error('Timed out connecting to Chrome DevTools.')), 10_000);
+            socket.addEventListener('open', () => {
+              clearTimeout(timer);
+              resolve();
+            }, { once: true });
+            socket.addEventListener('error', () => {
+              clearTimeout(timer);
+              reject(new Error('Chrome DevTools WebSocket connection failed.'));
+            }, { once: true });
+          });
+
+          socket.addEventListener('message', event => {
+            const message = JSON.parse(String(event.data));
+            if (message.id) {
+              const operation = pending.get(message.id);
+              if (!operation) return;
+              pending.delete(message.id);
+              clearTimeout(operation.timer);
+              if (message.error) operation.reject(new Error(`${operation.method}: ${message.error.message}`));
+              else operation.resolve(message.result || {});
+              return;
+            }
+            if (message.method === 'Runtime.exceptionThrown') {
+              exceptions.push(message.params?.exceptionDetails || message.params);
+            } else if (message.method === 'Runtime.consoleAPICalled' && message.params?.type === 'error') {
+              consoleErrors.push(message.params.args?.map(argument => argument.value || argument.description).join(' ') || 'console.error');
+            }
+          });
+
+          function command(method, params = {}) {
+            const id = ++sequence;
+            return new Promise((resolve, reject) => {
+              const timer = setTimeout(() => {
+                pending.delete(id);
+                reject(new Error(`Timed out waiting for ${method}.`));
+              }, 15_000);
+              pending.set(id, { resolve, reject, timer, method });
+              socket.send(JSON.stringify({ id, method, params }));
+            });
+          }
+
+          async function evaluate(expression) {
+            const result = await command('Runtime.evaluate', {
+              expression,
+              awaitPromise: true,
+              returnByValue: true,
+              userGesture: true
+            });
+            if (result.exceptionDetails) {
+              throw new Error(result.exceptionDetails.exception?.description || result.exceptionDetails.text || 'Browser evaluation failed.');
+            }
+            return result.result?.value;
+          }
+
+          async function waitFor(expression, description, attempts = 120, interval = 250) {
+            let value;
+            for (let attempt = 0; attempt < attempts; attempt += 1) {
+              value = await evaluate(expression).catch(() => null);
+              if (value) return value;
+              await sleep(interval);
+            }
+            throw new Error(`Timed out waiting for ${description}. Last value: ${JSON.stringify(value)}`);
+          }
+
+          await command('Page.enable');
+          await command('Runtime.enable');
+          await command('Page.bringToFront');
+          await command('Emulation.setDeviceMetricsOverride', {
+            width: 1024,
+            height: 682,
+            deviceScaleFactor: 1.5,
+            mobile: false,
+            screenWidth: 1024,
+            screenHeight: 682
+          });
+
+          await waitFor(
+            `Boolean(document.querySelector('#newEntryButton') && document.querySelector('[data-journal-id="journal-personal"]'))`,
+            'Silver to initialize'
+          );
+
+          await evaluate(`document.querySelector('#newEntryButton').click()`);
+          await waitFor(`Boolean(document.querySelector('#entryDialog')?.open)`, 'the entry editor');
+          await evaluate(`document.querySelector('#recordVideoButton').click()`);
+          await waitFor(`Boolean(document.querySelector('#recorderDialog')?.open)`, 'the video recorder');
+
+          const layoutExpression = phase => `(() => {
+            const visual = window.visualViewport;
+            const bounds = {
+              left: visual?.offsetLeft || 0,
+              top: visual?.offsetTop || 0,
+              right: (visual?.offsetLeft || 0) + (visual?.width || innerWidth),
+              bottom: (visual?.offsetTop || 0) + (visual?.height || innerHeight),
+              width: visual?.width || innerWidth,
+              height: visual?.height || innerHeight
+            };
+            const inspect = id => {
+              const element = document.querySelector('#' + id);
+              if (!element) return { id, exists: false, visible: false, fullyVisible: false };
+              const style = getComputedStyle(element);
+              const rect = element.getBoundingClientRect();
+              const visible = !element.hidden && style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0;
+              return {
+                id,
+                exists: true,
+                hidden: element.hidden,
+                display: style.display,
+                visibility: style.visibility,
+                visible,
+                fullyVisible: visible && rect.left >= bounds.left - 1 && rect.top >= bounds.top - 1 && rect.right <= bounds.right + 1 && rect.bottom <= bounds.bottom + 1,
+                rect: { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height },
+                text: element.textContent?.trim() || '',
+                minHeight: style.minHeight,
+                overflowY: style.overflowY
+              };
+            };
+            return {
+              phase: ${JSON.stringify(phase)},
+              bounds,
+              cssViewportHeight: getComputedStyle(document.documentElement).getPropertyValue('--silver-visual-viewport-height').trim(),
+              dialog: inspect('recorderDialog'),
+              stage: inspect('recorderStage'),
+              message: inspect('recorderMessage'),
+              controls: inspect('recorderDialog').exists ? (() => {
+                const element = document.querySelector('.recorder-controls');
+                const rect = element.getBoundingClientRect();
+                const style = getComputedStyle(element);
+                return {
+                  visible: style.display !== 'none' && rect.width > 0 && rect.height > 0,
+                  fullyVisible: rect.left >= bounds.left - 1 && rect.top >= bounds.top - 1 && rect.right <= bounds.right + 1 && rect.bottom <= bounds.bottom + 1,
+                  rect: { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height },
+                  overflowY: style.overflowY
+                };
+              })() : null,
+              prepare: inspect('prepareRecorderButton'),
+              start: inspect('startRecorderButton'),
+              pause: inspect('pauseRecorderButton'),
+              finish: inspect('finishRecorderButton'),
+              flip: inspect('flipCameraButton')
+            };
+          })()`;
+
+          function assertVisible(layout, names) {
+            if (!layout.dialog.fullyVisible) throw new Error(`${layout.phase}: recorder dialog is outside the visual viewport: ${JSON.stringify(layout)}`);
+            if (!layout.controls?.fullyVisible) throw new Error(`${layout.phase}: recorder controls are clipped: ${JSON.stringify(layout)}`);
+            if (!layout.stage.visible || layout.stage.rect.height < 80) throw new Error(`${layout.phase}: camera stage collapsed below a usable height: ${JSON.stringify(layout)}`);
+            if (layout.stage.minHeight !== '0px') throw new Error(`${layout.phase}: hard camera minimum height returned: ${JSON.stringify(layout)}`);
+            for (const name of names) {
+              const item = layout[name];
+              if (!item?.fullyVisible) throw new Error(`${layout.phase}: ${name} control is not fully visible: ${JSON.stringify(layout)}`);
+            }
+          }
+
+          const evidence = { viewport: { width: 1024, height: 682, deviceScaleFactor: 1.5 } };
+
+          evidence.idle = await evaluate(layoutExpression('idle'));
+          assertVisible(evidence.idle, ['prepare']);
+
+          await evaluate(`document.querySelector('#prepareRecorderButton').click()`);
+          await waitFor(
+            `(() => { const button = document.querySelector('#startRecorderButton'); return Boolean(button && !button.hidden && button.getBoundingClientRect().height); })()`,
+            'camera preparation and Start recording'
+          );
+          evidence.prepared = await evaluate(layoutExpression('prepared'));
+          assertVisible(evidence.prepared, ['start']);
+
+          await evaluate(`document.querySelector('#startRecorderButton').click()`);
+          await waitFor(
+            `(() => { const pause = document.querySelector('#pauseRecorderButton'); const finish = document.querySelector('#finishRecorderButton'); return Boolean(pause && finish && !pause.hidden && !finish.hidden && finish.getBoundingClientRect().height); })()`,
+            'recording controls'
+          );
+          await sleep(900);
+          evidence.recording = await evaluate(layoutExpression('recording'));
+          assertVisible(evidence.recording, ['pause', 'finish']);
+
+          await evaluate(`document.querySelector('#pauseRecorderButton').click()`);
+          await waitFor(
+            `document.querySelector('#pauseRecorderButton')?.textContent?.trim() === 'Resume'`,
+            'paused state'
+          );
+          evidence.paused = await evaluate(layoutExpression('paused'));
+          assertVisible(evidence.paused, ['pause', 'finish']);
+
+          const screenshot = await command('Page.captureScreenshot', {
+            format: 'png',
+            captureBeyondViewport: false,
+            fromSurface: true
+          });
+          fs.writeFileSync('/tmp/silver-recorder/recorder-controls-visible.png', Buffer.from(screenshot.data, 'base64'));
+
+          await evaluate(`document.querySelector('#finishRecorderButton').click()`);
+          await waitFor(`!document.querySelector('#recorderDialog')?.open`, 'Finish recording to close the recorder', 120, 250);
+          evidence.finished = true;
+          evidence.exceptions = exceptions;
+          evidence.consoleErrors = consoleErrors;
+          evidence.checkedAt = new Date().toISOString();
+          fs.writeFileSync('/tmp/silver-recorder/recorder-viewport-evidence.json', JSON.stringify(evidence, null, 2));
+
+          if (exceptions.length || consoleErrors.length) {
+            throw new Error(`Browser errors were reported: ${JSON.stringify({ exceptions, consoleErrors })}`);
+          }
+
+          console.log('PASS: Turn on camera remained fully visible.');
+          console.log('PASS: Start recording remained fully visible.');
+          console.log('PASS: Pause, Resume and Finish recording remained fully visible.');
+          console.log('PASS: The recorder dialog and controls remained inside a 1024 × 682 visual viewport at DPR 1.5.');
+          socket.close();
+          NODE
+
+          node /tmp/silver-recorder/verify-recorder.mjs
+          test -s /tmp/silver-recorder/recorder-controls-visible.png
+          test -s /tmp/silver-recorder/recorder-viewport-evidence.json
+
+          printf '### Recorder viewport verification passed\n\n- Tested at a 1024 × 682 CSS-pixel viewport with DPR 1.5, matching the reported short landscape geometry.\n- Camera preparation, Start, Pause, Resume and Finish controls remained fully inside the visual viewport.\n- The preview yielded height before controls could be clipped.\n- A real fake-device MediaRecorder session started, paused and finished successfully.\n' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Preserve recorder regression evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: silver-recorder-viewport-evidence
+          path: |
+            /tmp/silver-recorder/recorder-controls-visible.png
+            /tmp/silver-recorder/recorder-viewport-evidence.json
+            /tmp/silver-recorder/chrome.log
+            /tmp/silver-recorder/index.html
+          if-no-files-found: warn
+          retention-days: 14
