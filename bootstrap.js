@@ -1,17 +1,7 @@
 const assets = {
-  readable: {
-    shell: './src/shell.html',
-    styles: './src/styles.css',
-    app: './src/app.js'
-  },
-  legacy: {
-    shell: './shell.html.gz',
-    styles: './styles.css.gz',
-    appParts: [
-      './app.source.1.b64', './app.source.2.b64', './app.source.3.b64', './app.source.4.b64',
-      './app.source.5.b64', './app.source.6.b64', './app.source.7.b64', './app.source.8.b64'
-    ]
-  }
+  shell: './src/shell.html',
+  styles: './src/styles.css',
+  app: './src/app.js'
 };
 
 async function fetchText(path) {
@@ -20,65 +10,15 @@ async function fetchText(path) {
   return response.text();
 }
 
-function requireStreams() {
-  if (!('DecompressionStream' in globalThis)) {
-    throw new Error('Silver needs a current browser with gzip stream support. Update Chrome, Edge, Firefox or Safari, then reload.');
-  }
-}
-
-async function decompressResponse(path) {
-  requireStreams();
-  const response = await fetch(path, { cache: 'no-cache' });
-  if (!response.ok || !response.body) throw new Error(`Silver could not load ${path} (${response.status}).`);
-  return new Response(response.body.pipeThrough(new DecompressionStream('gzip'))).text();
-}
-
-async function decompressBase64Parts(paths) {
-  requireStreams();
-  const responses = await Promise.all(paths.map(path => fetch(path, { cache: 'no-cache' })));
-  const failed = responses.find(response => !response.ok);
-  if (failed) throw new Error(`Silver could not load its journal engine (${failed.status}).`);
-  const encoded = (await Promise.all(responses.map(response => response.text()))).join('');
-  const binary = atob(encoded.trim());
-  const bytes = Uint8Array.from(binary, character => character.charCodeAt(0));
-  return new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
-}
-
-async function loadBundle() {
-  try {
-    const [markup, styles, sourceText] = await Promise.all([
-      fetchText(assets.readable.shell),
-      fetchText(assets.readable.styles),
-      fetchText(assets.readable.app)
-    ]);
-    return { markup, styles, sourceText };
-  } catch (readableError) {
-    console.warn('Silver readable bundle was unavailable; using the packaged fallback.', readableError);
-    const [markup, styles, sourceText] = await Promise.all([
-      decompressResponse(assets.legacy.shell),
-      decompressResponse(assets.legacy.styles),
-      decompressBase64Parts(assets.legacy.appParts)
-    ]);
-    return { markup, styles, sourceText };
-  }
-}
-
 async function boot() {
-  const { markup, styles, sourceText } = await loadBundle();
+  const [markup, styles] = await Promise.all([
+    fetchText(assets.shell),
+    fetchText(assets.styles)
+  ]);
+
   document.getElementById('silverStyles').textContent = styles;
   document.getElementById('boot').outerHTML = markup;
-
-  const dbUrl = new URL('./db.js', import.meta.url).href;
-  const archiveUrl = new URL('./archive.js', import.meta.url).href;
-  const source = sourceText
-    .replaceAll("'./db.js'", JSON.stringify(dbUrl))
-    .replaceAll("'./archive.js'", JSON.stringify(archiveUrl));
-  const moduleUrl = URL.createObjectURL(new Blob([source], { type: 'text/javascript' }));
-  try {
-    await import(moduleUrl);
-  } finally {
-    URL.revokeObjectURL(moduleUrl);
-  }
+  await import(new URL(assets.app, import.meta.url).href);
 }
 
 boot().catch(error => {
