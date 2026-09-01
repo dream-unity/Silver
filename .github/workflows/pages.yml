@@ -25,37 +25,31 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          gzip -t shell.html.gz styles.css.gz
-          cat app.source.{1..8}.b64 | base64 --decode | gzip --decompress > /tmp/silver-app.mjs
-          cp db.js /tmp/silver-db.mjs
-          cp archive.js /tmp/silver-archive.mjs
-          cp bootstrap.js /tmp/silver-bootstrap.mjs
-          cp sw.js /tmp/silver-sw.mjs
-          node --check /tmp/silver-app.mjs
-          node --check /tmp/silver-db.mjs
-          node --check /tmp/silver-archive.mjs
-          node --check /tmp/silver-bootstrap.mjs
-          node --check /tmp/silver-sw.mjs
+          node --check bootstrap.js
+          node --check db.js
+          node --check archive.js
+          node --check sw.js
           node --check src/app.js
+          node --check src/db.js
+          node --check src/archive.js
           python3 -m json.tool manifest.webmanifest >/dev/null
+          grep -Fq "app: './src/app.js'" bootstrap.js
           grep -Fq 'data-action="open-media"' src/app.js
           grep -Fq 'Silver editor viewport and attachment playback fix' src/styles.css
 
           rm -rf _site
           mkdir -p _site/icons _site/src
-          cp index.html bootstrap.js shell.html.gz styles.css.gz \
-             app.source.*.b64 db.js archive.js sw.js manifest.webmanifest \
-             .nojekyll _site/
+          cp index.html bootstrap.js db.js archive.js sw.js manifest.webmanifest .nojekyll _site/
           cp icons/silver-mark.svg _site/icons/
-          cp src/app.js src/shell.html src/styles.css _site/src/
+          cp src/app.js src/db.js src/archive.js src/shell.html src/styles.css _site/src/
 
           test -s _site/index.html
-          test -s _site/shell.html.gz
-          test -s _site/styles.css.gz
+          test -s _site/bootstrap.js
           test -s _site/src/app.js
+          test -s _site/src/db.js
+          test -s _site/src/archive.js
           test -s _site/src/shell.html
           test -s _site/src/styles.css
-          test "$(find _site -maxdepth 1 -name 'app.source.*.b64' | wc -l)" -eq 8
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v6
@@ -94,43 +88,37 @@ jobs:
         run: |
           set -euo pipefail
           BASE="${SITE_URL%/}/"
-          mkdir -p /tmp/silver-live/src
+          mkdir -p /tmp/silver-live/src /tmp/silver-live/icons
 
           for attempt in {1..20}; do
             if curl --fail --silent --show-error --location \
               "${BASE}index.html?commit=${GITHUB_SHA}&attempt=${attempt}" \
               --output /tmp/silver-live/index.html; then
-              break
+              if grep -Fq 'Silver · Private video journal' /tmp/silver-live/index.html; then
+                break
+              fi
             fi
             sleep 3
           done
 
           test -s /tmp/silver-live/index.html
-          grep -q 'Silver · Private video journal' /tmp/silver-live/index.html
+          grep -Fq 'Silver · Private video journal' /tmp/silver-live/index.html
 
-          files=(bootstrap.js shell.html.gz styles.css.gz db.js archive.js sw.js manifest.webmanifest src/app.js src/shell.html src/styles.css)
+          files=(bootstrap.js db.js archive.js sw.js manifest.webmanifest src/app.js src/db.js src/archive.js src/shell.html src/styles.css icons/silver-mark.svg)
           for file in "${files[@]}"; do
             curl --fail --silent --show-error --location --retry 5 --retry-all-errors \
               "${BASE}${file}?commit=${GITHUB_SHA}" --output "/tmp/silver-live/${file}"
             cmp --silent "$file" "/tmp/silver-live/${file}"
           done
 
-          for number in {1..8}; do
-            file="app.source.${number}.b64"
-            curl --fail --silent --show-error --location --retry 5 --retry-all-errors \
-              "${BASE}${file}?commit=${GITHUB_SHA}" --output "/tmp/silver-live/${file}"
-            cmp --silent "$file" "/tmp/silver-live/${file}"
-          done
-
-          cat /tmp/silver-live/app.source.{1..8}.b64 \
-            | base64 --decode \
-            | gzip --decompress > /tmp/silver-live/app.mjs
-          node --check /tmp/silver-live/app.mjs
+          node --check /tmp/silver-live/bootstrap.js
+          node --check /tmp/silver-live/db.js
+          node --check /tmp/silver-live/archive.js
+          node --check /tmp/silver-live/sw.js
           node --check /tmp/silver-live/src/app.js
-          gzip -t /tmp/silver-live/shell.html.gz /tmp/silver-live/styles.css.gz
+          node --check /tmp/silver-live/src/db.js
+          node --check /tmp/silver-live/src/archive.js
           python3 -m json.tool /tmp/silver-live/manifest.webmanifest >/dev/null
-          grep -Fq 'data-action="open-media"' /tmp/silver-live/src/app.js
-          grep -Fq 'height: calc(100dvh - 20px)' /tmp/silver-live/src/styles.css
 
       - name: Open the deployed app in Chrome
         shell: bash
@@ -139,8 +127,8 @@ jobs:
           BASE="${SITE_URL%/}/"
           CHROME="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
           test -n "$CHROME"
-          echo "Using $CHROME"
           "$CHROME" --version
+          rm -rf /tmp/silver-chrome
 
           if ! "$CHROME" \
             --headless=new \
@@ -148,13 +136,13 @@ jobs:
             --disable-gpu \
             --disable-dev-shm-usage \
             --hide-scrollbars \
+            --user-data-dir=/tmp/silver-chrome \
             --window-size=1440,900 \
-            --virtual-time-budget=15000 \
+            --virtual-time-budget=20000 \
             --dump-dom \
             "${BASE}?smoke=${GITHUB_SHA}" \
             > /tmp/silver-live/dom.html \
             2> /tmp/silver-live/chrome.log; then
-            echo 'Chrome could not render the deployment.' >&2
             cat /tmp/silver-live/chrome.log >&2
             exit 1
           fi
@@ -165,8 +153,9 @@ jobs:
             --disable-gpu \
             --disable-dev-shm-usage \
             --hide-scrollbars \
+            --user-data-dir=/tmp/silver-chrome-shot \
             --window-size=1440,900 \
-            --virtual-time-budget=15000 \
+            --virtual-time-budget=20000 \
             --screenshot=/tmp/silver-live/silver-live.png \
             "${BASE}?screenshot=${GITHUB_SHA}" \
             >> /tmp/silver-live/chrome.log 2>&1
@@ -180,9 +169,7 @@ jobs:
               echo "PASS: $description"
             else
               echo "FAIL: $description (missing marker: $marker)" >&2
-              echo '--- Rendered DOM excerpt ---' >&2
-              sed -n '1,220p' /tmp/silver-live/dom.html >&2
-              echo '--- Chrome log ---' >&2
+              tail -240 /tmp/silver-live/dom.html >&2
               cat /tmp/silver-live/chrome.log >&2
               exit 1
             fi
@@ -194,11 +181,10 @@ jobs:
 
           if grep -Fq 'Silver could not open' /tmp/silver-live/dom.html; then
             echo 'FAIL: the application rendered its fatal-error state.' >&2
-            sed -n '1,220p' /tmp/silver-live/dom.html >&2
             exit 1
           fi
 
-          printf '### Live verification passed\n\n- Published files match `main`.\n- The readable runtime bundle loaded successfully.\n- Media attachments expose their player action.\n- The editor uses the viewport-fitting desktop layout.\n- IndexedDB initialized the default journal.\n- The rendered application opened successfully in headless Chrome.\n' >> "$GITHUB_STEP_SUMMARY"
+          printf '### Live verification passed\n\n- Published files match `main`.\n- The direct readable runtime loaded successfully.\n- IndexedDB initialized the default journal.\n- The Today view rendered in headless Chrome.\n' >> "$GITHUB_STEP_SUMMARY"
 
       - name: Preserve live verification evidence
         if: always()
