@@ -1,7 +1,10 @@
 const assets = {
   shell: './shell.html.gz',
   styles: './styles.css.gz',
-  appParts: ['./app.source.1.b64', './app.source.2.b64', './app.source.3.b64']
+  appParts: [
+    './app.source.1.b64', './app.source.2.b64', './app.source.3.b64', './app.source.4.b64',
+    './app.source.5.b64', './app.source.6.b64', './app.source.7.b64', './app.source.8.b64'
+  ]
 };
 
 function requireStreams() {
