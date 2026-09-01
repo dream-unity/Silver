@@ -95,10 +95,16 @@ export function openDatabase() {
 async function runStore(storeName, mode, callback) {
   const db = await openDatabase();
   const transaction = db.transaction(storeName, mode);
+  const completion = transactionDone(transaction);
   const store = transaction.objectStore(storeName);
-  const result = await callback(store, transaction);
-  await transactionDone(transaction);
-  return result;
+  try {
+    const operation = callback(store, transaction);
+    const [result] = await Promise.all([operation, completion]);
+    return result;
+  } catch (error) {
+    try { transaction.abort(); } catch {}
+    throw error;
+  }
 }
 
 export async function getAll(storeName) {
@@ -117,9 +123,10 @@ export async function putMany(storeName, values) {
   if (!values.length) return;
   const db = await openDatabase();
   const transaction = db.transaction(storeName, 'readwrite');
+  const completion = transactionDone(transaction);
   const store = transaction.objectStore(storeName);
   values.forEach(value => store.put(value));
-  await transactionDone(transaction);
+  await completion;
 }
 
 export async function deleteOne(storeName, id) {
@@ -165,15 +172,17 @@ export async function removeSetting(key) {
 export async function saveEntry(entry, attachments = []) {
   const db = await openDatabase();
   const transaction = db.transaction([STORES.entries, STORES.attachments], 'readwrite');
+  const completion = transactionDone(transaction);
   transaction.objectStore(STORES.entries).put(entry);
   const attachmentStore = transaction.objectStore(STORES.attachments);
   attachments.forEach(attachment => attachmentStore.put(attachment));
-  await transactionDone(transaction);
+  await completion;
 }
 
 export async function deleteEntry(entryId) {
   const db = await openDatabase();
   const transaction = db.transaction([STORES.entries, STORES.attachments], 'readwrite');
+  const completion = transactionDone(transaction);
   transaction.objectStore(STORES.entries).delete(entryId);
   const attachmentStore = transaction.objectStore(STORES.attachments);
   const index = attachmentStore.index('entryId');
@@ -184,7 +193,7 @@ export async function deleteEntry(entryId) {
     cursor.delete();
     cursor.continue();
   };
-  await transactionDone(transaction);
+  await completion;
 }
 
 export async function deleteAttachment(attachmentId) {
@@ -198,6 +207,7 @@ export async function saveJournal(journal) {
 export async function deleteJournal(journalId, fallbackJournalId) {
   const db = await openDatabase();
   const transaction = db.transaction([STORES.journals, STORES.entries], 'readwrite');
+  const completion = transactionDone(transaction);
   const journalStore = transaction.objectStore(STORES.journals);
   const entryStore = transaction.objectStore(STORES.entries);
   const index = entryStore.index('journalId');
@@ -209,7 +219,7 @@ export async function deleteJournal(journalId, fallbackJournalId) {
     cursor.continue();
   };
   journalStore.delete(journalId);
-  await transactionDone(transaction);
+  await completion;
 }
 
 export async function saveCollection(collection) {
@@ -219,6 +229,7 @@ export async function saveCollection(collection) {
 export async function deleteCollection(collectionId) {
   const db = await openDatabase();
   const transaction = db.transaction([STORES.collections, STORES.journals], 'readwrite');
+  const completion = transactionDone(transaction);
   transaction.objectStore(STORES.collections).delete(collectionId);
   const journalStore = transaction.objectStore(STORES.journals);
   const request = journalStore.index('collectionId').openCursor(IDBKeyRange.only(collectionId));
@@ -228,7 +239,7 @@ export async function deleteCollection(collectionId) {
     cursor.update({ ...cursor.value, collectionId: '' });
     cursor.continue();
   };
-  await transactionDone(transaction);
+  await completion;
 }
 
 export async function saveTemplate(template) {
@@ -243,6 +254,7 @@ export async function importLibrary(library, { replace = false } = {}) {
   const db = await openDatabase();
   const storeNames = Object.values(STORES);
   const transaction = db.transaction(storeNames, 'readwrite');
+  const completion = transactionDone(transaction);
 
   if (replace) storeNames.forEach(name => transaction.objectStore(name).clear());
 
@@ -253,15 +265,16 @@ export async function importLibrary(library, { replace = false } = {}) {
   (library.templates || []).forEach(value => transaction.objectStore(STORES.templates).put(value));
   Object.entries(library.settings || {}).forEach(([key, value]) => transaction.objectStore(STORES.settings).put({ key, value }));
 
-  await transactionDone(transaction);
+  await completion;
 }
 
 export async function eraseLibrary() {
   const db = await openDatabase();
   const storeNames = Object.values(STORES);
   const transaction = db.transaction(storeNames, 'readwrite');
+  const completion = transactionDone(transaction);
   storeNames.forEach(name => transaction.objectStore(name).clear());
-  await transactionDone(transaction);
+  await completion;
 }
 
 export async function ensureSeedData() {
