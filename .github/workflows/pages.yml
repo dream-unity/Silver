@@ -33,7 +33,7 @@ jobs:
           node --check src/db.js
           node --check src/archive.js
           python3 -m json.tool manifest.webmanifest >/dev/null
-          grep -Fq "app: './src/app.js'" bootstrap.js
+          grep -Fq "app: versioned('./src/app.js')" bootstrap.js
           grep -Fq 'data-action="open-media"' src/app.js
           grep -Fq 'Silver editor viewport and attachment playback fix' src/styles.css
 
