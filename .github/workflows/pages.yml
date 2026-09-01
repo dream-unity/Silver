@@ -129,8 +129,10 @@ jobs:
           BASE="${SITE_URL%/}/"
           CHROME="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
           test -n "$CHROME"
+          echo "Using $CHROME"
+          "$CHROME" --version
 
-          "$CHROME" \
+          if ! "$CHROME" \
             --headless=new \
             --no-sandbox \
             --disable-gpu \
@@ -141,12 +143,11 @@ jobs:
             --dump-dom \
             "${BASE}?smoke=${GITHUB_SHA}" \
             > /tmp/silver-live/dom.html \
-            2> /tmp/silver-live/chrome.log
-
-          grep -q 'data-journal-id="journal-personal"' /tmp/silver-live/dom.html
-          grep -q '>Personal<' /tmp/silver-live/dom.html
-          grep -q 'Your latest entries' /tmp/silver-live/dom.html
-          ! grep -q 'Silver could not open' /tmp/silver-live/dom.html
+            2> /tmp/silver-live/chrome.log; then
+            echo 'Chrome could not render the deployment.' >&2
+            cat /tmp/silver-live/chrome.log >&2
+            exit 1
+          fi
 
           "$CHROME" \
             --headless=new \
@@ -157,12 +158,40 @@ jobs:
             --window-size=1440,1000 \
             --virtual-time-budget=15000 \
             --screenshot=/tmp/silver-live/silver-live.png \
-            "${BASE}?screenshot=${GITHUB_SHA}"
+            "${BASE}?screenshot=${GITHUB_SHA}" \
+            >> /tmp/silver-live/chrome.log 2>&1
 
           test -s /tmp/silver-live/silver-live.png
+
+          assert_dom() {
+            local marker="$1"
+            local description="$2"
+            if grep -Fq "$marker" /tmp/silver-live/dom.html; then
+              echo "PASS: $description"
+            else
+              echo "FAIL: $description (missing marker: $marker)" >&2
+              echo '--- Rendered DOM excerpt ---' >&2
+              sed -n '1,220p' /tmp/silver-live/dom.html >&2
+              echo '--- Chrome log ---' >&2
+              cat /tmp/silver-live/chrome.log >&2
+              exit 1
+            fi
+          }
+
+          assert_dom 'data-journal-id="journal-personal"' 'IndexedDB seeded the Personal journal'
+          assert_dom '<span>Personal</span>' 'The journal sidebar rendered'
+          assert_dom 'Your latest entries' 'The Today view rendered'
+
+          if grep -Fq 'Silver could not open' /tmp/silver-live/dom.html; then
+            echo 'FAIL: the application rendered its fatal-error state.' >&2
+            sed -n '1,220p' /tmp/silver-live/dom.html >&2
+            exit 1
+          fi
+
           printf '### Live verification passed\n\n- Published files match `main`.\n- IndexedDB initialized the default journal.\n- The rendered application opened successfully in headless Chrome.\n' >> "$GITHUB_STEP_SUMMARY"
 
       - name: Preserve live verification evidence
+        if: always()
         uses: actions/upload-artifact@v7
         with:
           name: silver-live-verification
@@ -170,4 +199,5 @@ jobs:
             /tmp/silver-live/silver-live.png
             /tmp/silver-live/dom.html
             /tmp/silver-live/chrome.log
+          if-no-files-found: warn
           retention-days: 14
