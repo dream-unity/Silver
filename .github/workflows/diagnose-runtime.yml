@@ -1,0 +1,115 @@
+name: Diagnose Silver runtime
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/diagnose-runtime.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Open Silver through Chrome DevTools Protocol
+        shell: bash
+        run: |
+          set -euo pipefail
+          CHROME="$(command -v google-chrome || command -v chromium || command -v chromium-browser)"
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/silver-server.log 2>&1 &
+          SERVER_PID=$!
+          "$CHROME" \
+            --headless=new \
+            --no-sandbox \
+            --disable-gpu \
+            --disable-dev-shm-usage \
+            --remote-debugging-port=9222 \
+            --remote-allow-origins='*' \
+            --user-data-dir=/tmp/silver-diagnostic-profile \
+            about:blank >/tmp/silver-chrome.log 2>&1 &
+          CHROME_PID=$!
+          trap 'kill "$CHROME_PID" "$SERVER_PID" 2>/dev/null || true' EXIT
+
+          python3 -m pip install --quiet websocket-client
+          python3 <<'PY'
+          import json, queue, time, urllib.request
+          import websocket
+
+          deadline = time.time() + 20
+          targets = None
+          while time.time() < deadline:
+              try:
+                  with urllib.request.urlopen('http://127.0.0.1:9222/json/list', timeout=2) as response:
+                      targets = json.load(response)
+                  if targets:
+                      break
+              except Exception:
+                  time.sleep(.25)
+          if not targets:
+              raise SystemExit('Chrome DevTools endpoint did not become available')
+
+          ws = websocket.create_connection(targets[0]['webSocketDebuggerUrl'], timeout=2)
+          next_id = 0
+          pending = {}
+          events = []
+
+          def send(method, params=None):
+              global next_id
+              next_id += 1
+              ws.send(json.dumps({'id': next_id, 'method': method, 'params': params or {}}))
+              pending[next_id] = method
+              return next_id
+
+          send('Runtime.enable')
+          send('Log.enable')
+          send('Network.enable')
+          send('Page.enable')
+          send('Page.navigate', {'url': 'http://127.0.0.1:8765/?diagnostic=1'})
+
+          end = time.time() + 15
+          while time.time() < end:
+              try:
+                  message = json.loads(ws.recv())
+              except Exception:
+                  continue
+              method = message.get('method', '')
+              if method in {'Runtime.exceptionThrown', 'Runtime.consoleAPICalled', 'Log.entryAdded', 'Network.loadingFailed'}:
+                  events.append(message)
+
+          expressions = {
+              'location': 'location.href',
+              'readyState': 'document.readyState',
+              'viewText': 'document.querySelector("#viewRoot")?.innerText || ""',
+              'journalCount': 'document.querySelectorAll("[data-journal-id]").length',
+              'bootPresent': 'Boolean(document.querySelector("#boot"))',
+              'bodyText': 'document.body.innerText.slice(0, 1200)',
+              'resources': 'performance.getEntriesByType("resource").map(r => ({name:r.name, type:r.initiatorType, duration:r.duration}))',
+              'databases': 'indexedDB.databases ? indexedDB.databases() : Promise.resolve([])'
+          }
+          ids = {send('Runtime.evaluate', {'expression': expr, 'awaitPromise': True, 'returnByValue': True}): name for name, expr in expressions.items()}
+          results = {}
+          end = time.time() + 10
+          while ids and time.time() < end:
+              try:
+                  message = json.loads(ws.recv())
+              except Exception:
+                  continue
+              identifier = message.get('id')
+              if identifier in ids:
+                  name = ids.pop(identifier)
+                  results[name] = message.get('result', {}).get('result', {}).get('value', message)
+
+          print('=== RUNTIME RESULTS ===')
+          print(json.dumps(results, indent=2, default=str))
+          print('=== RUNTIME EVENTS ===')
+          for event in events:
+              print(json.dumps(event, default=str))
+
+          if results.get('journalCount', 0) < 1 or not results.get('viewText'):
+              raise SystemExit('Silver did not finish initializing in local Chrome')
+          PY
