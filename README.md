@@ -9,6 +9,8 @@ Silver is not affiliated with Day One or Automattic. Its interface and implement
 - Direct video recording with camera switching, pause/resume and no fixed five-minute limit
 - Direct audio recording and optional browser-supported live transcription
 - Photos, existing video/audio, PDFs and files; up to 30 attachments per entry
+- Clickable editor attachments that open images, documents and playable audio/video in a focused viewer
+- A viewport-fitted desktop editor designed to remain fully usable at normal 100% browser zoom
 - Written entries with Markdown formatting and preview
 - Device-local draft recovery and save status
 - Multiple journals grouped into collections
