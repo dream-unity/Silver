@@ -2,13 +2,13 @@ const BUILD = '20260901-media-layout-1';
 const versioned = path => `${path}?v=${BUILD}`;
 
 const assets = {
-  shell: versioned('./src/shell.html'),
-  styles: versioned('./src/styles.css'),
-  app: versioned('./src/app.js')
+  shell: './src/shell.html',
+  styles: './src/styles.css',
+  app: './src/app.js'
 };
 
 async function fetchText(path) {
-  const response = await fetch(path, { cache: 'no-cache' });
+  const response = await fetch(versioned(path), { cache: 'no-cache' });
   if (!response.ok) throw new Error(`Silver could not load ${path} (${response.status}).`);
   return response.text();
 }
@@ -21,7 +21,7 @@ async function boot() {
 
   document.getElementById('silverStyles').textContent = styles;
   document.getElementById('boot').outerHTML = markup;
-  await import(new URL(assets.app, import.meta.url).href);
+  await import(versioned(new URL(assets.app, import.meta.url).href));
 }
 
 boot().catch(error => {
