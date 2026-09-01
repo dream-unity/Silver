@@ -1,11 +1,24 @@
 const assets = {
-  shell: './shell.html.gz',
-  styles: './styles.css.gz',
-  appParts: [
-    './app.source.1.b64', './app.source.2.b64', './app.source.3.b64', './app.source.4.b64',
-    './app.source.5.b64', './app.source.6.b64', './app.source.7.b64', './app.source.8.b64'
-  ]
+  readable: {
+    shell: './src/shell.html',
+    styles: './src/styles.css',
+    app: './src/app.js'
+  },
+  legacy: {
+    shell: './shell.html.gz',
+    styles: './styles.css.gz',
+    appParts: [
+      './app.source.1.b64', './app.source.2.b64', './app.source.3.b64', './app.source.4.b64',
+      './app.source.5.b64', './app.source.6.b64', './app.source.7.b64', './app.source.8.b64'
+    ]
+  }
 };
+
+async function fetchText(path) {
+  const response = await fetch(path, { cache: 'no-cache' });
+  if (!response.ok) throw new Error(`Silver could not load ${path} (${response.status}).`);
+  return response.text();
+}
 
 function requireStreams() {
   if (!('DecompressionStream' in globalThis)) {
@@ -31,13 +44,27 @@ async function decompressBase64Parts(paths) {
   return new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
 }
 
-async function boot() {
-  const [markup, styles, sourceText] = await Promise.all([
-    decompressResponse(assets.shell),
-    decompressResponse(assets.styles),
-    decompressBase64Parts(assets.appParts)
-  ]);
+async function loadBundle() {
+  try {
+    const [markup, styles, sourceText] = await Promise.all([
+      fetchText(assets.readable.shell),
+      fetchText(assets.readable.styles),
+      fetchText(assets.readable.app)
+    ]);
+    return { markup, styles, sourceText };
+  } catch (readableError) {
+    console.warn('Silver readable bundle was unavailable; using the packaged fallback.', readableError);
+    const [markup, styles, sourceText] = await Promise.all([
+      decompressResponse(assets.legacy.shell),
+      decompressResponse(assets.legacy.styles),
+      decompressBase64Parts(assets.legacy.appParts)
+    ]);
+    return { markup, styles, sourceText };
+  }
+}
 
+async function boot() {
+  const { markup, styles, sourceText } = await loadBundle();
   document.getElementById('silverStyles').textContent = styles;
   document.getElementById('boot').outerHTML = markup;
 

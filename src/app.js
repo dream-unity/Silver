@@ -676,7 +676,15 @@ function renderAttachmentTray() {
     else if (attachment.kind === 'video') preview = `<video src="${url}#t=0.1" muted playsinline preload="metadata"></video>`;
     else preview = `<div class="attachment-file">${icon(attachment.kind === 'audio' ? 'mic' : 'document')}<span>${escapeHtml(attachment.name)}</span></div>`;
     const detail = attachment.durationMs ? `${formatDuration(attachment.durationMs)} · ` : '';
-    return `<article class="attachment-item">${preview}<button class="remove-attachment" type="button" data-remove-attachment="${escapeAttribute(attachment.id)}" aria-label="Remove ${escapeAttribute(attachment.name)}">${icon('close')}</button><span class="attachment-label">${escapeHtml(detail + formatBytes(attachment.blob?.size || attachment.size || 0))}</span></article>`;
+    const verb = attachment.kind === 'video' || attachment.kind === 'audio' ? 'Play' : 'Open';
+    const label = `${verb} ${attachment.name || 'attachment'}`;
+    return `<article class="attachment-item">
+      <button class="attachment-open" type="button" data-action="open-media" data-attachment-id="${escapeAttribute(attachment.id)}" aria-label="${escapeAttribute(label)}" title="${escapeAttribute(label)}">
+        ${preview}
+        <span class="attachment-label">${escapeHtml(detail + formatBytes(attachment.blob?.size || attachment.size || 0))}</span>
+      </button>
+      <button class="remove-attachment" type="button" data-remove-attachment="${escapeAttribute(attachment.id)}" aria-label="Remove ${escapeAttribute(attachment.name)}">${icon('close')}</button>
+    </article>`;
   }).join('');
 }
 
@@ -973,6 +981,13 @@ function openMediaViewer(attachmentId) {
   else el.mediaViewerBody.innerHTML = `<div class="generic-file">${icon('document')}<strong>${escapeHtml(attachment.name || 'File')}</strong><span>${escapeHtml(formatBytes(attachment.blob?.size || attachment.size || 0))}</span></div>`;
   el.openMediaEntryButton.hidden = !entryById(attachment.entryId);
   el.mediaDialog.showModal();
+  const playable = el.mediaViewerBody.querySelector('video, audio');
+  if (playable) {
+    playable.addEventListener('error', () => {
+      showToast('This browser could not play this recording format. The original file is still available to download.', 5200);
+    }, { once: true });
+    playable.play().catch(() => { /* Native controls remain available when autoplay is restricted. */ });
+  }
 }
 
 function closeMediaViewer() {

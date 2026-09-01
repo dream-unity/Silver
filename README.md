@@ -56,10 +56,11 @@ The repository is designed for GitHub Pages at the `main` branch root. All paths
 ## Runtime architecture
 
 - `index.html` — small accessible boot shell and failure fallback
-- `bootstrap.js` — reconstructs and starts the tested interface bundle in-browser
-- `shell.html.gz` — compressed accessible application markup
-- `styles.css.gz` — compressed responsive visual system
-- `app.source.1.b64` … `app.source.8.b64` — exact gzip/base64 segments of the application engine
+- `bootstrap.js` — loads the readable application bundle and retains the packaged release as a fallback
+- `src/shell.html` — canonical accessible application markup
+- `src/styles.css` — canonical responsive visual system
+- `src/app.js` — canonical application engine
+- `shell.html.gz`, `styles.css.gz`, `app.source.1.b64` … `app.source.8.b64` — backward-compatible packaged fallback
 - `db.js` — IndexedDB schema and atomic persistence operations
 - `archive.js` — native TAR-based `.silver` export/import without third-party libraries
 - `sw.js` — offline application-shell service worker
