@@ -1,5 +1,10 @@
 const CACHE_NAME = 'silver-shell-v1';
-const SHELL = ['./', './index.html', './styles.css', './app.js', './db.js', './archive.js', './manifest.webmanifest', './icons/silver-mark.svg'];
+const SHELL = [
+  './', './index.html', './bootstrap.js', './shell.html.gz', './styles.css.gz',
+  './app.source.1.b64', './app.source.2.b64', './app.source.3.b64', './app.source.4.b64',
+  './app.source.5.b64', './app.source.6.b64', './app.source.7.b64', './app.source.8.b64',
+  './db.js', './archive.js', './manifest.webmanifest', './icons/silver-mark.svg'
+];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting()));
