@@ -1,8 +1,8 @@
-const CACHE_NAME = 'silver-shell-v5-map-your-mind';
+const CACHE_NAME = 'silver-shell-v6-deleted-memories';
 const SHELL = [
   './', './index.html', './bootstrap.js',
   './src/shell.html', './src/styles.css', './src/app.js', './src/db.js', './src/archive.js',
-  './db.js', './archive.js', './manifest.webmanifest', './icons/silver-mark.svg'
+  './db.js', './archive.js', './deleted-memories.js', './manifest.webmanifest', './icons/silver-mark.svg'
 ];
 
 self.addEventListener('install', event => {
@@ -35,6 +35,7 @@ self.addEventListener('fetch', event => {
 
   const isRuntimeCode = event.request.mode === 'navigate'
     || url.pathname.endsWith('/bootstrap.js')
+    || url.pathname.endsWith('/deleted-memories.js')
     || url.pathname.includes('/src/')
     || url.pathname.includes('/mind-map/');
   if (isRuntimeCode) {

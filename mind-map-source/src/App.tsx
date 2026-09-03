@@ -16,6 +16,7 @@ import {
   addBrain,
   blankDocument,
   deleteBrain,
+  deleteBrainToDeletedMemories,
   exportDocument,
   importDocument,
   loadBrain,
@@ -28,6 +29,12 @@ import { Plex } from './components/Plex'
 import { ContentArea } from './components/ContentArea'
 import { CardView, MindMapView, OutlineView } from './components/AltViews'
 import { StartMenu } from './components/StartMenu'
+import {
+  moveMindMapAttachmentToDeletedMemories,
+  moveMindMapThoughtToDeletedMemories,
+  subscribeDeletedMemories,
+} from './lib/deleted-memories'
+import { DeletedMemoriesButton } from './components/DeletedMemoriesButton'
 
 export default function App() {
   const [library, setLibrary] = useState<BrainLibrary>(() => loadLibrary())
@@ -42,6 +49,22 @@ export default function App() {
   useEffect(() => {
     setLibrary(loadLibrary())
   }, [])
+
+  useEffect(() => {
+    return subscribeDeletedMemories(() => {
+      const nextLibrary = loadLibrary()
+      setLibrary(nextLibrary)
+      if (!brainId) return
+      const nextDocument = loadBrain(brainId)
+      if (nextDocument) {
+        setDoc(nextDocument)
+      } else if (!nextLibrary.items.some((item) => item.id === brainId)) {
+        setBrainId(null)
+        setDoc(null)
+        setComposer(null)
+      }
+    })
+  }, [brainId])
 
   useEffect(() => {
     if (!brainId || !doc) return
@@ -79,7 +102,7 @@ export default function App() {
       }
       if ((event.ctrlKey || event.metaKey) && event.key === 'Delete') {
         event.preventDefault()
-        setDoc((current) => (current ? forgetThought(current, current.activeId) : current))
+        void forgetThoughtWithRecovery(doc.activeId)
       }
       if (event.key === '/') {
         event.preventDefault()
@@ -91,7 +114,7 @@ export default function App() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [doc])
+  }, [doc, brainId])
 
   const zones = useMemo(() => (doc ? plexZones(doc) : null), [doc])
   const hits = useMemo(() => (doc && query.trim() ? searchThoughts(doc, query) : []), [doc, query])
@@ -139,6 +162,51 @@ export default function App() {
     setComposer(null)
   }
 
+
+  async function deleteBrainWithRecovery(id: string) {
+    const item = library.items.find((entry) => entry.id === id)
+    if (!item) return
+    if (!window.confirm(`Move “${item.title}” to Deleted Memories? It can be restored for 30 days.`)) return
+    try {
+      const next = await deleteBrainToDeletedMemories(id)
+      setLibrary(next)
+      if (brainId === id) {
+        setBrainId(null)
+        setDoc(null)
+        setComposer(null)
+      }
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : 'The mind map could not be moved to Deleted Memories.')
+    }
+  }
+
+  async function forgetThoughtWithRecovery(id: string) {
+    if (!brainId || !doc || id === doc.homeId) return
+    const thought = doc.thoughts.find((item) => item.id === id && !item.forgotten)
+    if (!thought) return
+    if (!window.confirm(`Move “${thought.name}” to Deleted Memories? It can be restored for 30 days.`)) return
+    try {
+      await moveMindMapThoughtToDeletedMemories(brainId, doc.title, doc, id)
+      setDoc((current) => (current ? forgetThought(current, id) : current))
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : 'The thought could not be moved to Deleted Memories.')
+    }
+  }
+
+  async function detachWithRecovery(attachmentId: string) {
+    if (!brainId || !doc) return
+    const thought = doc.thoughts.find((item) => item.id === doc.activeId)
+    const attachment = thought?.attachments.find((item) => item.id === attachmentId)
+    if (!thought || !attachment) return
+    if (!window.confirm(`Move “${attachment.title || 'Attachment'}” to Deleted Memories? It can be restored for 30 days.`)) return
+    try {
+      await moveMindMapAttachmentToDeletedMemories(brainId, doc.title, thought.id, thought.name, attachment)
+      setDoc((current) => (current ? removeAttachment(current, thought.id, attachmentId) : current))
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : 'The attachment could not be moved to Deleted Memories.')
+    }
+  }
+
   if (!brainId || !doc) {
     return (
       <StartMenu
@@ -146,13 +214,7 @@ export default function App() {
         onOpen={openBrain}
         onCreateBlank={(title) => createFrom(blankDocument(title), 'blank')}
         onCreateTheory={() => createFrom(seedDocument(), 'dream-unity')}
-        onDelete={(id) => {
-          setLibrary(deleteBrain(id))
-          if (brainId === id) {
-            setBrainId(null)
-            setDoc(null)
-          }
-        }}
+        onDelete={(id) => void deleteBrainWithRecovery(id)}
         onImport={(raw) => {
           const next = importDocument(raw)
           if (next) createFrom(next, 'blank')
@@ -172,7 +234,7 @@ export default function App() {
         onOpen={openBrain}
         onCreateBlank={(title) => createFrom(blankDocument(title), 'blank')}
         onCreateTheory={() => createFrom(seedDocument(), 'dream-unity')}
-        onDelete={(id) => setLibrary(deleteBrain(id))}
+        onDelete={(id) => void deleteBrainWithRecovery(id)}
         onImport={(raw) => {
           const next = importDocument(raw)
           if (next) createFrom(next, 'blank')
@@ -297,7 +359,7 @@ export default function App() {
                 setDoc((current) => (current ? createLinkedThought(current, fromId, kind, name, 'source', extra) : current))
               }
               onLink={(fromId, toId, kind) => setDoc((current) => (current ? linkThoughts(current, fromId, toId, kind) : current))}
-              onForget={(id) => setDoc((current) => (current ? forgetThought(current, id) : current))}
+              onForget={(id) => void forgetThoughtWithRecovery(id)}
               onPin={(id) => setDoc((current) => (current ? togglePin(current, id) : current))}
             />
           ) : null}
@@ -339,9 +401,9 @@ export default function App() {
           onColor={(color) => setDoc((current) => (current ? updateThought(current, safeActive.id, { color }) : current))}
           onActivate={go}
           onPin={() => setDoc((current) => (current ? togglePin(current, safeActive.id) : current))}
-          onForget={() => setDoc((current) => (current ? forgetThought(current, safeActive.id) : current))}
+          onForget={() => void forgetThoughtWithRecovery(safeActive.id)}
           onAttach={(title, url) => setDoc((current) => (current ? addAttachment(current, safeActive.id, { title, url }) : current))}
-          onDetach={(id) => setDoc((current) => (current ? removeAttachment(current, safeActive.id, id) : current))}
+          onDetach={(id) => void detachWithRecovery(id)}
         />
       </div>
 
@@ -364,6 +426,7 @@ export default function App() {
           </button>
         </form>
       ) : null}
+      <DeletedMemoriesButton />
     </div>
   )
 }

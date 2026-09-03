@@ -2,5 +2,6 @@
   "repository": "dream-unity/theory",
   "commit": "78c88c42d2c45f46db480b6499bda90556ba944c",
   "deploymentBase": "/Silver/mind-map/",
-  "integration": "This is the tested static build of the pinned Theory application. Silver loads it only after Map Your Mind is selected."
+  "integration": "Pinned Theory behavior with Silver-only Map Your Mind and shared Deleted Memories bridges. The original theory repository is unchanged.",
+  "silverRecoveryBuild": "20260903-deleted-memories-1"
 }

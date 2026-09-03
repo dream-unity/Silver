@@ -93,3 +93,12 @@ All application paths are relative, so the PWA works correctly under the `/Silve
 The Today dashboard's upper-right card opens a full-screen, isolated copy of the Theory mind-mapping application. The exact pinned functional source is retained under `mind-map-source/`; its tested static build is under `mind-map/`. Silver loads that build only after **Map Your Mind** is selected, so the journal, recorder, IndexedDB data and existing navigation remain independent.
 
 The integrated copy is pinned to `dream-unity/theory` commit `78c88c42d2c45f46db480b6499bda90556ba944c`. The upstream repository is read only: Silver's integration never writes to or modifies `dream-unity/theory`.
+
+
+## Deleted Memories
+
+Silver uses one shared, device-local recovery store for the journal and Map Your Mind. Deleting a journal entry, saved media attachment, journal, collection, writing template, mind map, mind-map thought or mind-map attachment moves it into **Deleted Memories** rather than destroying it immediately.
+
+The recovery button is fixed at the lower-left of the Silver sidebar and at the lower-left of both mind-map screens. Both buttons open the same recovery page. Each item shows its exact expiry, can be restored, or can be permanently deleted immediately. Items automatically become permanently unavailable 30 days after deletion; Silver performs expiry cleanup at startup, while visible, during hourly checks and whenever either application observes a recovery-store change.
+
+The original `dream-unity/theory` repository remains untouched. Only Silver's isolated vendored copy contains the recovery bridge.

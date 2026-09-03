@@ -1,6 +1,7 @@
 import type { BrainDocument, BrainLibrary, BrainMeta, Thought } from '../types'
 import { cloneSeed } from './mutate'
 import { uid, nowIso } from './ids'
+import { moveMindMapToDeletedMemories } from './deleted-memories'
 
 const LEGACY_KEY = 'dream-unity-brain-v4'
 const LIBRARY_KEY = 'dream-unity-library-v1'
@@ -194,6 +195,16 @@ export function deleteBrain(id: string): BrainLibrary {
   }
   saveLibrary(next)
   return next
+}
+
+
+export async function deleteBrainToDeletedMemories(id: string): Promise<BrainLibrary> {
+  const library = loadLibrary()
+  const meta = library.items.find((item) => item.id === id)
+  const document = loadBrain(id)
+  if (!meta || !document) return deleteBrain(id)
+  await moveMindMapToDeletedMemories(id, meta, document)
+  return deleteBrain(id)
 }
 
 export function loadDocument(): BrainDocument {

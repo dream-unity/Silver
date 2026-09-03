@@ -180,6 +180,33 @@ function finalizeForgottenThought(memory) {
   }
 }
 
+async function scrubThoughtFromTrashedMap(memory, records) {
+  if (memory?.kind !== 'mind-map-thought') return;
+  const mapId = memory.payload?.mapId;
+  const thoughtId = memory.payload?.thought?.id || memory.originalId;
+  if (!mapId || !thoughtId) return;
+  const mapMemory = records.find(record => record.kind === 'mind-map' && (record.payload?.mapId || record.originalId) === mapId);
+  const sourceDocument = mapMemory?.payload?.document;
+  if (!mapMemory || !sourceDocument) return;
+  const document = structuredClone(sourceDocument);
+  document.thoughts = (document.thoughts || []).filter(thought => thought.id !== thoughtId);
+  document.links = (document.links || []).filter(link => link.from !== thoughtId && link.to !== thoughtId);
+  document.pins = (document.pins || []).filter(id => id !== thoughtId);
+  document.history = (document.history || []).filter(id => id !== thoughtId);
+  document.historyIndex = Math.max(0, Math.min(document.historyIndex || 0, Math.max(0, document.history.length - 1)));
+  if (document.activeId === thoughtId) document.activeId = document.homeId;
+  document.updatedAt = new Date().toISOString();
+  const db = await openDatabase();
+  const transaction = db.transaction(DELETED_MEMORY_STORE, 'readwrite');
+  const completion = transactionDone(transaction);
+  transaction.objectStore(DELETED_MEMORY_STORE).put({
+    ...mapMemory,
+    summary: `${document.thoughts.filter(thought => !thought.forgotten).length} active thoughts`,
+    payload: { ...mapMemory.payload, document }
+  });
+  await completion;
+}
+
 function relatedThoughtMemoryIds(records, mapId) {
   return records
     .filter(record => record.kind === 'mind-map-thought' && record.payload?.mapId === mapId)
@@ -203,10 +230,11 @@ export async function purgeExpiredDeletedMemories(now = Date.now()) {
   const expired = records.filter(record => Number(record.expiresAt || 0) <= now);
   if (!expired.length) return 0;
   const ids = new Set(expired.map(record => record.id));
-  expired.forEach(record => {
+  for (const record of expired) {
     finalizeForgottenThought(record);
+    await scrubThoughtFromTrashedMap(record, records);
     if (record.kind === 'mind-map') relatedThoughtMemoryIds(records, record.payload?.mapId || record.originalId).forEach(id => ids.add(id));
-  });
+  }
   await deleteRecords([...ids], 'expired');
   return ids.size;
 }
@@ -597,6 +625,42 @@ async function restoreMindMapThought(memory) {
   return { kind: memory.kind, title: memory.title, restoredId: thoughtId };
 }
 
+async function restoreMindMapAttachment(memory) {
+  const payload = memory.payload || {};
+  const mapId = payload.mapId;
+  const thoughtId = payload.thoughtId;
+  const originalAttachment = payload.attachment;
+  if (!mapId || !thoughtId || !originalAttachment) throw new Error('This recovery record is missing its map attachment.');
+  const key = MAP_DOCUMENT_KEY(mapId);
+  const raw = localStorage.getItem(key);
+  if (!raw) {
+    const error = new Error('Restore the mind map that owned this attachment first.');
+    error.code = 'PARENT_MISSING';
+    throw error;
+  }
+  const document = JSON.parse(raw);
+  document.thoughts = Array.isArray(document.thoughts) ? document.thoughts : [];
+  const thought = document.thoughts.find(item => item.id === thoughtId);
+  if (!thought) {
+    const error = new Error('Restore the mind-map thought that owned this attachment first.');
+    error.code = 'PARENT_MISSING';
+    throw error;
+  }
+  thought.attachments = Array.isArray(thought.attachments) ? thought.attachments : [];
+  const attachmentIds = new Set(thought.attachments.map(item => item.id));
+  const attachmentId = attachmentIds.has(originalAttachment.id) ? uniqueRecordId(attachmentIds, 'a') : originalAttachment.id;
+  thought.attachments.push({ ...originalAttachment, id: attachmentId });
+  document.updatedAt = new Date().toISOString();
+  localStorage.setItem(key, JSON.stringify(document));
+  const library = readMapLibrary();
+  writeMapLibrary({
+    ...library,
+    items: library.items.map(item => item.id === mapId ? mapMetaFromDocument(mapId, document, item.template) : item)
+  });
+  await deleteRecords([memory.id], 'mind-map-attachment-restored');
+  return { kind: memory.kind, title: memory.title, restoredId: attachmentId };
+}
+
 export async function restoreDeletedMemory(id) {
   const memory = await getDeletedMemoryRaw(id);
   if (!memory) throw new Error('This deleted memory no longer exists.');
@@ -612,6 +676,7 @@ export async function restoreDeletedMemory(id) {
   else if (memory.kind === 'template') result = await restoreTemplate(memory);
   else if (memory.kind === 'mind-map') result = await restoreMindMap(memory);
   else if (memory.kind === 'mind-map-thought') result = await restoreMindMapThought(memory);
+  else if (memory.kind === 'mind-map-attachment') result = await restoreMindMapAttachment(memory);
   else throw new Error('This version of Silver does not recognise that deleted memory type.');
   notifyDeletedMemoriesChanged('restored');
   return result;
@@ -622,6 +687,7 @@ export async function permanentlyDeleteDeletedMemory(id, { reason = 'permanently
   const memory = records.find(record => record.id === id);
   if (!memory) return false;
   finalizeForgottenThought(memory);
+  await scrubThoughtFromTrashedMap(memory, records);
   const ids = new Set([id]);
   if (memory.kind === 'mind-map') {
     relatedThoughtMemoryIds(records, memory.payload?.mapId || memory.originalId).forEach(relatedId => ids.add(relatedId));
@@ -650,7 +716,8 @@ export function deletedMemoryTypeLabel(kind) {
     collection: 'Collection',
     template: 'Writing template',
     'mind-map': 'Mind map',
-    'mind-map-thought': 'Mind-map thought'
+    'mind-map-thought': 'Mind-map thought',
+    'mind-map-attachment': 'Mind-map attachment'
   })[kind] || 'Deleted memory';
 }
 

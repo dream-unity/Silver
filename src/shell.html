@@ -32,6 +32,9 @@
 
       <div class="sidebar-spacer"></div>
       <div class="sidebar-footer">
+        <button class="sidebar-action deleted-memories-button" id="deletedMemoriesButton" type="button" data-view="deleted" title="Deleted Memories" aria-label="Open Deleted Memories">
+          <svg><use href="#icon-trash"></use></svg><span>Deleted Memories</span><b class="deleted-memories-count" id="deletedMemoriesCount" hidden>0</b>
+        </button>
         <button class="sidebar-action" id="installButton" type="button" hidden><svg><use href="#icon-download"></use></svg><span>Install Silver</span></button>
         <button class="sidebar-action" id="settingsButton" type="button"><svg><use href="#icon-settings"></use></svg><span>Settings</span></button>
         <div class="privacy-status"><span></span><div><strong>Stored on this device</strong><small id="storageStatus">Checking private storage…</small></div></div>

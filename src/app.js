@@ -17,6 +17,21 @@ import {
   uid
 } from './db.js';
 import { createSilverArchive, parseSilverArchive, createReadableText } from './archive.js';
+import {
+  loadDeletedMemories,
+  moveJournalEntryToDeletedMemories,
+  moveJournalAttachmentToDeletedMemories,
+  moveJournalToDeletedMemories,
+  moveCollectionToDeletedMemories,
+  moveTemplateToDeletedMemories,
+  restoreDeletedMemory,
+  permanentlyDeleteDeletedMemory,
+  emptyDeletedMemories,
+  purgeExpiredDeletedMemories,
+  subscribeDeletedMemories,
+  deletedMemoryTypeLabel,
+  deletedMemoryRetention
+} from '../deleted-memories.js';
 
 const PROMPTS = [
   'What happened today that deserves to remain visible?',
@@ -44,7 +59,7 @@ const MOODS = Object.freeze({
   stormy: { symbol: '☂', label: 'Stormy' }
 });
 
-const VIEWS = new Set(['today', 'timeline', 'calendar', 'memories', 'media', 'places', 'favorites']);
+const VIEWS = new Set(['today', 'timeline', 'calendar', 'memories', 'media', 'places', 'favorites', 'deleted']);
 const MAX_ATTACHMENTS = 30;
 const DRAFT_KEY = 'silver-unsaved-entry-draft-v1';
 
@@ -71,7 +86,9 @@ const state = {
   viewObjectUrls: new Set(),
   editorObjectUrls: new Set(),
   viewerObjectUrl: '',
-  mindMapReturnFocus: null
+  mindMapReturnFocus: null,
+  deletedMemories: [],
+  deletedMemoriesUnsubscribe: null
 };
 
 const recorder = {
@@ -95,6 +112,7 @@ function cacheElements() {
   [
     'sidebar', 'sidebarClose', 'sidebarScrim', 'menuButton', 'journalList', 'addJournalButton',
     'settingsButton', 'installButton', 'storageStatus', 'globalSearch', 'lockButton', 'newEntryButton',
+    'deletedMemoriesCount',
     'viewRoot', 'entryDialog', 'entryForm', 'editorEyebrow', 'editorHeading', 'draftState', 'entryTitle',
     'entryBody', 'entryPreview', 'previewToggle', 'entryJournal', 'entryDate', 'templateSelect', 'moodPicker',
     'entryTags', 'entryLocationLabel', 'locateButton', 'locationStatus', 'entryFavorite', 'saveTemplateButton',
@@ -341,6 +359,112 @@ function filteredEntries({ view = state.view } = {}) {
   return entries.sort((a, b) => b.createdAt - a.createdAt);
 }
 
+async function refreshDeletedMemories({ render = false } = {}) {
+  state.deletedMemories = await loadDeletedMemories();
+  updateDeletedMemoriesCount();
+  if (render) {
+    renderSidebar();
+    if (state.view === 'deleted') renderView();
+  }
+  return state.deletedMemories;
+}
+
+function updateDeletedMemoriesCount() {
+  const count = state.deletedMemories?.length || 0;
+  if (!el.deletedMemoriesCount) return;
+  el.deletedMemoriesCount.textContent = String(count);
+  el.deletedMemoriesCount.hidden = count === 0;
+  el.deletedMemoriesCount.setAttribute('aria-label', `${count} deleted ${count === 1 ? 'memory' : 'memories'}`);
+}
+
+function deletedMemoryIcon(kind) {
+  if (kind === 'mind-map' || kind === 'mind-map-thought') return 'share';
+  if (kind === 'mind-map-attachment') return 'media';
+  if (kind === 'journal-attachment') return 'media';
+  if (kind === 'journal') return 'list';
+  if (kind === 'collection') return 'history';
+  if (kind === 'template') return 'template';
+  return 'document';
+}
+
+function deletedMemoryCard(memory) {
+  const retention = deletedMemoryRetention(memory);
+  const deletedAt = formatDate(memory.deletedAt, { dateStyle: 'medium', timeStyle: 'short' });
+  const expiresAt = formatDate(memory.expiresAt, { dateStyle: 'medium', timeStyle: 'short' });
+  const type = deletedMemoryTypeLabel(memory.kind);
+  return `<article class="deleted-memory-card" data-deleted-memory-id="${escapeAttribute(memory.id)}">
+    <div class="deleted-memory-symbol" aria-hidden="true">${icon(deletedMemoryIcon(memory.kind))}</div>
+    <div class="deleted-memory-copy">
+      <div class="deleted-memory-meta"><span>${escapeHtml(type)}</span><span>·</span><span>Deleted ${escapeHtml(deletedAt)}</span></div>
+      <h2>${escapeHtml(memory.title || 'Untitled memory')}</h2>
+      ${memory.summary ? `<p>${escapeHtml(memory.summary)}</p>` : ''}
+      <div class="deleted-memory-source">${memory.sourceTitle ? `<span>From ${escapeHtml(memory.sourceTitle)}</span>` : ''}<strong>${escapeHtml(retention.label)}</strong></div>
+      <small>Automatically and permanently deleted ${escapeHtml(expiresAt)}</small>
+    </div>
+    <div class="deleted-memory-actions">
+      <button class="primary-button" type="button" data-action="restore-deleted-memory" data-memory-id="${escapeAttribute(memory.id)}">${icon('history')}Restore</button>
+      <button class="danger-button" type="button" data-action="permanently-delete-memory" data-memory-id="${escapeAttribute(memory.id)}">${icon('trash')}Permanently delete</button>
+    </div>
+  </article>`;
+}
+
+function renderDeletedMemories() {
+  const memories = [...(state.deletedMemories || [])].sort((a, b) => Number(b.deletedAt || 0) - Number(a.deletedAt || 0));
+  const tools = memories.length
+    ? `<button class="danger-button" type="button" data-action="empty-deleted-memories">${icon('trash')}Empty Deleted Memories</button>`
+    : '';
+  return `${viewHeading('RECOVERY', 'Deleted Memories', `${memories.length} ${memories.length === 1 ? 'item remains' : 'items remain'} recoverable for up to 30 days.`, tools)}
+    <section class="deleted-memory-notice">${icon('history')}<div><strong>A 30-day safety window</strong><p>Everything deleted from the journal or Map Your Mind is gathered here. Restore it before its displayed expiry time, or permanently delete it immediately.</p></div></section>
+    ${memories.length ? `<div class="deleted-memory-list">${memories.map(deletedMemoryCard).join('')}</div>` : emptyState('Nothing is waiting for recovery', 'Deleted entries, media, maps and thoughts will remain here for 30 days before automatic permanent deletion.', '')}`;
+}
+
+async function restoreMemoryById(memoryId) {
+  const memory = state.deletedMemories.find(item => item.id === memoryId);
+  if (!memory) return showToast('That deleted memory is no longer available.');
+  try {
+    const result = await restoreDeletedMemory(memoryId);
+    await reloadLibrary();
+    await refreshDeletedMemories();
+    renderAll();
+    renderJournalManager();
+    renderTemplateManager();
+    showToast(`Restored “${result.title || memory.title}”.`);
+  } catch (error) {
+    console.error(error);
+    showToast(error.message || 'The deleted memory could not be restored.', 6000);
+  }
+}
+
+async function permanentlyDeleteMemoryById(memoryId) {
+  const memory = state.deletedMemories.find(item => item.id === memoryId);
+  if (!memory) return;
+  if (!confirm(`Permanently delete “${memory.title}”? This cannot be undone.`)) return;
+  try {
+    await permanentlyDeleteDeletedMemory(memoryId);
+    await refreshDeletedMemories();
+    renderAll();
+    showToast('The memory was permanently deleted.');
+  } catch (error) {
+    console.error(error);
+    showToast('The memory could not be permanently deleted.');
+  }
+}
+
+async function emptyDeletedMemoriesNow() {
+  if (!state.deletedMemories.length) return;
+  const confirmation = prompt(`This permanently deletes all ${state.deletedMemories.length} recoverable items now. Type DELETE to continue.`);
+  if (confirmation !== 'DELETE') return;
+  try {
+    const count = await emptyDeletedMemories();
+    await refreshDeletedMemories();
+    renderAll();
+    showToast(`Permanently deleted ${count} ${count === 1 ? 'memory' : 'memories'}.`);
+  } catch (error) {
+    console.error(error);
+    showToast('Deleted Memories could not be emptied.');
+  }
+}
+
 function renderSidebar() {
   const entries = state.library.entries;
   const collections = [...state.library.collections].sort((a, b) => a.name.localeCompare(b.name));
@@ -365,8 +489,12 @@ function renderSidebar() {
   });
   if (ungrouped.length) html += `<div class="collection-label">Unfiled</div>${ungrouped.map(journalButton).join('')}`;
   el.journalList.innerHTML = html;
+  updateDeletedMemoriesCount();
 
   document.querySelectorAll('.primary-nav [data-view]').forEach(button => {
+    button.classList.toggle('active', button.dataset.view === state.view && !state.search);
+  });
+  document.querySelectorAll('.sidebar-footer [data-view]').forEach(button => {
     button.classList.toggle('active', button.dataset.view === state.view && !state.search);
   });
 }
@@ -594,6 +722,7 @@ function renderView() {
   else if (state.view === 'media') html = renderMedia();
   else if (state.view === 'places') html = renderPlaces();
   else if (state.view === 'favorites') html = renderFavorites();
+  else if (state.view === 'deleted') html = renderDeletedMemories();
   el.viewRoot.innerHTML = html;
 }
 
@@ -899,7 +1028,7 @@ async function saveCurrentEntry() {
   el.draftState.textContent = 'Saving privately…';
   try {
     await persistEntry(entry, pendingAttachments);
-    await Promise.all([...state.removedAttachmentIds].map(deleteAttachment));
+    await Promise.all([...state.removedAttachmentIds].map(moveJournalAttachmentToDeletedMemories));
     clearDraft();
     await reloadLibrary();
     closeEditor();
@@ -921,16 +1050,19 @@ async function saveCurrentEntry() {
 
 async function deleteCurrentEntry() {
   if (!state.editorEntryId) return;
-  if (!confirm('Permanently delete this entry and every attached media file from this device?')) return;
+  const entry = entryById(state.editorEntryId);
+  if (!entry) return;
+  if (!confirm(`Move “${entry.title || 'Untitled entry'}” to Deleted Memories? It can be restored for 30 days.`)) return;
   try {
-    await removeEntry(state.editorEntryId);
+    await moveJournalEntryToDeletedMemories(state.editorEntryId);
     await reloadLibrary();
+    await refreshDeletedMemories();
     closeEditor();
     renderAll();
-    showToast('Entry deleted.');
+    showToast('Entry moved to Deleted Memories for 30 days.');
   } catch (error) {
     console.error(error);
-    showToast('The entry could not be deleted.');
+    showToast(error.message || 'The entry could not be moved to Deleted Memories.');
   }
 }
 
@@ -1403,14 +1535,15 @@ async function removeCurrentJournal() {
   if (state.library.journals.length <= 1) return showToast('Silver must keep at least one journal.');
   const fallback = state.library.journals.find(item => item.id !== journal.id && item.isDefault) || state.library.journals.find(item => item.id !== journal.id);
   const count = state.library.entries.filter(entry => entry.journalId === journal.id).length;
-  if (!confirm(`Delete “${journal.name}”? ${count ? `${count} existing ${count === 1 ? 'entry' : 'entries'} will move to “${fallback.name}”.` : 'It contains no entries.'}`)) return;
-  await deleteJournal(journal.id, fallback.id);
+  if (!confirm(`Move the “${journal.name}” journal to Deleted Memories? ${count ? `${count} existing ${count === 1 ? 'entry' : 'entries'} will remain safely available in “${fallback.name}”.` : 'It contains no entries.'} The journal can be restored for 30 days.`)) return;
+  await moveJournalToDeletedMemories(journal.id, fallback.id);
   if (state.selectedJournalId === journal.id) state.selectedJournalId = '';
   await reloadLibrary();
+  await refreshDeletedMemories();
   el.journalDialog.close();
   renderAll();
   renderJournalManager();
-  showToast('Journal deleted. Existing entries were preserved.');
+  showToast('Journal moved to Deleted Memories. Its entries remain available.');
 }
 
 async function addNewCollection() {
@@ -1438,21 +1571,25 @@ async function renameCollectionById(collectionId) {
 async function removeCollectionById(collectionId) {
   const collection = state.library.collections.find(item => item.id === collectionId);
   if (!collection) return;
-  if (!confirm(`Delete the “${collection.name}” collection? Its journals and entries will remain.`)) return;
-  await deleteCollection(collectionId);
+  if (!confirm(`Move the “${collection.name}” collection to Deleted Memories? Its journals and entries will remain available, and the collection can be restored for 30 days.`)) return;
+  await moveCollectionToDeletedMemories(collectionId);
   await reloadLibrary();
+  await refreshDeletedMemories();
   renderAll();
   renderJournalManager();
+  showToast('Collection moved to Deleted Memories.');
 }
 
 async function removeTemplateById(templateId) {
   const template = state.library.templates.find(item => item.id === templateId);
-  if (!template || !confirm(`Delete the “${template.name}” template? Existing entries will not change.`)) return;
-  await deleteTemplate(templateId);
+  if (!template || !confirm(`Move the “${template.name}” template to Deleted Memories? Existing entries will not change, and the template can be restored for 30 days.`)) return;
+  await moveTemplateToDeletedMemories(templateId);
   await reloadLibrary();
+  await refreshDeletedMemories();
   renderTemplateManager();
   populateEditorSelectors();
-  showToast('Template deleted.');
+  renderAll();
+  showToast('Template moved to Deleted Memories.');
 }
 
 function bytesToBase64(bytes) {
@@ -1602,7 +1739,7 @@ function exportReadableText() {
 }
 
 async function wipeAllData() {
-  const confirmation = prompt('This permanently deletes every local entry and media file. Type ERASE to continue.');
+  const confirmation = prompt('This permanently deletes every local entry, media file and item in Deleted Memories. Type ERASE to continue.');
   if (confirmation !== 'ERASE') return;
   await eraseLibrary();
   clearDraft();
@@ -1694,16 +1831,21 @@ async function registerServiceWorker() {
 
 function handleLaunchParameters() {
   const params = new URLSearchParams(location.search);
+  const requestedView = params.get('view');
   const sharedTitle = params.get('title') || '';
   const sharedText = params.get('text') || '';
   const sharedUrl = params.get('url') || '';
   const newMode = params.get('new');
+  if (requestedView && VIEWS.has(requestedView)) state.view = requestedView;
   if (sharedTitle || sharedText || sharedUrl) {
-    state.pendingLaunchAction = { type: 'entry', initial: { title: sharedTitle, body: [sharedText, sharedUrl].filter(Boolean).join('\n\n') } };
+    state.pendingLaunchAction = { type: 'entry', initial: { title: sharedTitle, body: [sharedText, sharedUrl].filter(Boolean).join('
+
+') } };
   } else if (newMode) {
     state.pendingLaunchAction = { type: 'entry', recorder: newMode === 'video' ? 'video' : null };
   }
   history.replaceState({}, '', location.pathname + location.hash);
+  if (requestedView && VIEWS.has(requestedView)) renderAll();
   handlePendingLaunchAction();
 }
 
@@ -1803,6 +1945,9 @@ function bindEvents() {
     else if (action === 'favorite' && entryId) await toggleFavorite(entryId);
     else if (action === 'share' && entryId) await shareEntry(entryId);
     else if (action === 'export-entry' && entryId) await exportEntry(entryId);
+    else if (action === 'restore-deleted-memory') await restoreMemoryById(actionElement.dataset.memoryId);
+    else if (action === 'permanently-delete-memory') await permanentlyDeleteMemoryById(actionElement.dataset.memoryId);
+    else if (action === 'empty-deleted-memories') await emptyDeletedMemoriesNow();
     else if (action === 'edit-journal') openJournalDialog(actionElement.dataset.journalId);
     else if (action === 'rename-collection') await renameCollectionById(actionElement.dataset.collectionId);
     else if (action === 'delete-collection') await removeCollectionById(actionElement.dataset.collectionId);
@@ -1900,6 +2045,15 @@ function bindEvents() {
   });
   el.deleteJournalButton.addEventListener('click', removeCurrentJournal);
 
+  window.addEventListener('message', async event => {
+    if (event.origin !== location.origin) return;
+    if (event.source !== el.mindMapFrame.contentWindow) return;
+    if (event.data?.type !== 'silver-open-deleted-memories') return;
+    closeMindMap();
+    await refreshDeletedMemories();
+    setView('deleted');
+  });
+
   el.closeMindMapButton.addEventListener('click', closeMindMap);
   el.mindMapDialog.addEventListener('cancel', event => {
     event.preventDefault();
@@ -1942,6 +2096,8 @@ function bindEvents() {
 
   ['pointerdown', 'keydown', 'touchstart'].forEach(type => document.addEventListener(type, noteActivity, { passive: true }));
   window.addEventListener('pagehide', () => {
+    state.deletedMemoriesUnsubscribe?.();
+    state.deletedMemoriesUnsubscribe = null;
     if (recorder.instance && ['recording', 'paused'].includes(recorder.instance.state)) {
       recorder.discarding = true;
       recorder.instance.stop();
@@ -1957,6 +2113,8 @@ async function init() {
   cacheElements();
   try {
     state.library = await ensureSeedData();
+    await purgeExpiredDeletedMemories();
+    state.deletedMemories = await loadDeletedMemories({ purge: false });
     state.mediaFilter = state.library.settings.mediaFilter || 'all';
     applyTheme();
     bindEvents();
@@ -1965,6 +2123,17 @@ async function init() {
     registerServiceWorker();
     if (state.library.settings.lock) lockNow(false);
     handleLaunchParameters();
+    state.deletedMemoriesUnsubscribe = subscribeDeletedMemories(() => {
+      refreshDeletedMemories({ render: true }).catch(error => console.warn('Deleted Memories refresh failed:', error));
+    });
+    window.setInterval(() => {
+      refreshDeletedMemories({ render: state.view === 'deleted' }).catch(error => console.warn('Deleted Memories expiry check failed:', error));
+    }, 60 * 60 * 1000);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        refreshDeletedMemories({ render: state.view === 'deleted' }).catch(error => console.warn('Deleted Memories visibility refresh failed:', error));
+      }
+    });
     window.setInterval(checkReminder, 30_000);
     window.setInterval(checkAutoLock, 30_000);
     checkReminder();

@@ -14,7 +14,7 @@ let bus: BroadcastChannel | null = null
 interface DeletedMemoryRecord {
   id: string
   schemaVersion: 1
-  kind: 'mind-map' | 'mind-map-thought'
+  kind: 'mind-map' | 'mind-map-thought' | 'mind-map-attachment'
   originalId: string
   title: string
   summary: string
@@ -268,6 +268,25 @@ export async function moveMindMapThoughtToDeletedMemories(mapId: string, mapTitl
       wasActive: document.activeId === thoughtId,
     },
   }), 'mind-map-thought-deleted')
+}
+
+
+export async function moveMindMapAttachmentToDeletedMemories(
+  mapId: string,
+  mapTitle: string,
+  thoughtId: string,
+  thoughtTitle: string,
+  attachment: { id: string; title: string; url?: string },
+) {
+  if (!mapId || !thoughtId || !attachment) return null
+  return put(record({
+    kind: 'mind-map-attachment',
+    originalId: attachment.id,
+    title: attachment.title || 'Mind-map attachment',
+    summary: attachment.url || `Removed from ${thoughtTitle || 'a thought'}`,
+    sourceTitle: `${mapTitle || 'Map Your Mind'} · ${thoughtTitle || 'Thought'}`,
+    payload: { mapId, mapTitle, thoughtId, thoughtTitle, attachment },
+  }), 'mind-map-attachment-deleted')
 }
 
 export function openSharedDeletedMemories() {
