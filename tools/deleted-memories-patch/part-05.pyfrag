@@ -47,7 +47,9 @@ def verify_source() -> None:
         "Silver recovery styles": MARKER in styles,
         "map launcher": "DeletedMemoriesButton" in map_app and "DeletedMemoriesButton" in map_menu,
         "map deletion": "deleteBrainToDeletedMemories" in map_app and "moveMindMapToDeletedMemories" in map_store,
+        "map delete controls": map_app.count("deleteBrainWithRecovery(id)") >= 2,
         "thought deletion": "moveMindMapThoughtToDeletedMemories" in map_app,
+        "thought delete controls": "onForget={(id) => void forgetThoughtWithRecovery(id)}" in map_app and "onForget={() => void forgetThoughtWithRecovery(safeActive.id)}" in map_app,
         "map attachment deletion": "moveMindMapAttachmentToDeletedMemories" in map_app,
         "shared map bridge": "silver-open-deleted-memories" in map_engine,
         "map recovery styles": "Silver Deleted Memories — shared map launcher" in map_styles,
@@ -63,8 +65,6 @@ def verify_source() -> None:
 
     if "Permanently delete this entry and every attached media file" in app:
         raise RuntimeError("The old permanent entry-deletion path is still reachable.")
-    if "setLibrary(deleteBrain(id))" in map_app:
-        raise RuntimeError("A user-facing map deletion still bypasses Deleted Memories.")
     if "onForget={(id) => setDoc" in map_app or "onForget={() => setDoc" in map_app:
         raise RuntimeError("A user-facing thought deletion still bypasses Deleted Memories.")
 
