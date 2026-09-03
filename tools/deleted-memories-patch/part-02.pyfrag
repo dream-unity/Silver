@@ -1,0 +1,245 @@
+    state.pendingLaunchAction = { type: 'entry', recorder: newMode === 'video' ? 'video' : null };
+  }
+  history.replaceState({}, '', location.pathname + location.hash);
+  if (requestedView && VIEWS.has(requestedView)) renderAll();
+  handlePendingLaunchAction();
+}
+
+function handlePendingLaunchAction''',
+        "Deleted Memories launch parameter support",
+        re.S,
+    )
+    if "sidebar-footer [data-view]" not in text:
+        text = replace_once(
+            text,
+            "  document.querySelectorAll('.primary-nav [data-view]').forEach(button => {\n    button.classList.toggle('active', button.dataset.view === state.view && !state.search);\n  });",
+            "  document.querySelectorAll('.primary-nav [data-view]').forEach(button => {\n    button.classList.toggle('active', button.dataset.view === state.view && !state.search);\n  });\n  document.querySelectorAll('.sidebar-footer [data-view]').forEach(button => {\n    button.classList.toggle('active', button.dataset.view === state.view && !state.search);\n  });",
+            "Deleted Memories footer active state",
+        )
+    if "silver-open-deleted-memories" not in text:
+        listener = r'''  window.addEventListener('message', async event => {
+    if (event.origin !== location.origin) return;
+    if (event.source !== el.mindMapFrame.contentWindow) return;
+    if (event.data?.type !== 'silver-open-deleted-memories') return;
+    closeMindMap();
+    await refreshDeletedMemories();
+    setView('deleted');
+  });
+
+'''
+        text = replace_once(
+            text,
+            "  el.closeMindMapButton.addEventListener('click', closeMindMap);",
+            listener + "  el.closeMindMapButton.addEventListener('click', closeMindMap);",
+            "shared Deleted Memories message listener",
+        )
+    startup_old = """    state.library = await ensureSeedData();
+    state.mediaFilter = state.library.settings.mediaFilter || 'all';
+    applyTheme();
+    bindEvents();
+    renderAll();
+"""
+    startup_new = """    state.library = await ensureSeedData();
+    await purgeExpiredDeletedMemories();
+    state.deletedMemories = await loadDeletedMemories({ purge: false });
+    state.mediaFilter = state.library.settings.mediaFilter || 'all';
+    applyTheme();
+    bindEvents();
+    renderAll();
+"""
+    text = replace_once(text, startup_old, startup_new, "Deleted Memories startup")
+    if "state.deletedMemoriesUnsubscribe = subscribeDeletedMemories" not in text:
+        subscriptions = r'''    state.deletedMemoriesUnsubscribe = subscribeDeletedMemories(() => {
+      refreshDeletedMemories({ render: true }).catch(error => console.warn('Deleted Memories refresh failed:', error));
+    });
+    window.setInterval(() => {
+      refreshDeletedMemories({ render: state.view === 'deleted' }).catch(error => console.warn('Deleted Memories expiry check failed:', error));
+    }, 60 * 60 * 1000);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        refreshDeletedMemories({ render: state.view === 'deleted' }).catch(error => console.warn('Deleted Memories visibility refresh failed:', error));
+      }
+    });
+'''
+        text = replace_once(
+            text,
+            "    handleLaunchParameters();\n    window.setInterval(checkReminder, 30_000);",
+            "    handleLaunchParameters();\n" + subscriptions + "    window.setInterval(checkReminder, 30_000);",
+            "Deleted Memories synchronization startup",
+        )
+    if "state.deletedMemoriesUnsubscribe?.();" not in text:
+        text = replace_once(
+            text,
+            "  window.addEventListener('pagehide', () => {\n    if (recorder.instance",
+            "  window.addEventListener('pagehide', () => {\n    state.deletedMemoriesUnsubscribe?.();\n    state.deletedMemoriesUnsubscribe = null;\n    if (recorder.instance",
+            "Deleted Memories subscription cleanup",
+        )
+    text = text.replace(
+        "if (kind === 'mind-map' || kind === 'mind-map-thought') return 'share';",
+        "if (kind === 'mind-map' || kind === 'mind-map-thought') return 'share';\n  if (kind === 'mind-map-attachment') return 'media';",
+        1,
+    )
+    write(path, text)
+
+
+def patch_root_shell() -> None:
+    path = "src/shell.html"
+    text = read(path)
+    if 'id="deletedMemoriesButton"' not in text:
+        button = '''        <button class="sidebar-action deleted-memories-button" id="deletedMemoriesButton" type="button" data-view="deleted" title="Deleted Memories" aria-label="Open Deleted Memories">
+          <svg><use href="#icon-trash"></use></svg><span>Deleted Memories</span><b class="deleted-memories-count" id="deletedMemoriesCount" hidden>0</b>
+        </button>
+'''
+        text = replace_once(
+            text,
+            '        <button class="sidebar-action" id="installButton" type="button" hidden>',
+            button + '        <button class="sidebar-action" id="installButton" type="button" hidden>',
+            "Silver bottom-left Deleted Memories button",
+        )
+    write(path, text)
+
+
+def root_deleted_styles() -> str:
+    return r'''
+
+/* Silver Deleted Memories — 2026-09-03 */
+.deleted-memories-button {
+  position: relative;
+  border: 1px solid color-mix(in srgb, var(--accent) 16%, transparent);
+  background: color-mix(in srgb, var(--accent-soft) 35%, transparent);
+}
+.deleted-memories-button:hover,
+.deleted-memories-button.active {
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--line));
+  background: var(--accent-soft);
+  color: var(--accent-deep);
+}
+.deleted-memories-count {
+  display: grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  margin-left: auto;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--accent-deep);
+  color: var(--surface-2);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+.deleted-memory-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  margin-bottom: 18px;
+  padding: 18px 20px;
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--line));
+  border-radius: 17px;
+  background: color-mix(in srgb, var(--accent-soft) 42%, var(--surface-2));
+  box-shadow: var(--shadow-soft);
+}
+.deleted-memory-notice > svg {
+  width: 25px;
+  height: 25px;
+  flex: 0 0 auto;
+  color: var(--accent-deep);
+}
+.deleted-memory-notice strong { display: block; margin-bottom: 3px; }
+.deleted-memory-notice p { margin: 0; color: var(--muted); font-size: 12px; }
+.deleted-memory-list { display: grid; gap: 11px; }
+.deleted-memory-card {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 17px;
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface-2);
+  box-shadow: var(--shadow-soft);
+}
+.deleted-memory-symbol {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--line));
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--accent-soft) 62%, var(--surface-2));
+  color: var(--accent-deep);
+}
+.deleted-memory-symbol svg { width: 24px; height: 24px; }
+.deleted-memory-copy { min-width: 0; }
+.deleted-memory-meta,
+.deleted-memory-source {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  color: var(--faint);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.deleted-memory-copy h2 {
+  margin: 5px 0 3px;
+  overflow-wrap: anywhere;
+  font-family: var(--font-display);
+  font-size: 23px;
+  font-weight: 400;
+  line-height: 1.12;
+}
+.deleted-memory-copy > p {
+  display: -webkit-box;
+  margin: 0 0 8px;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12px;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.deleted-memory-source { justify-content: space-between; text-transform: none; letter-spacing: 0; }
+.deleted-memory-source strong { color: var(--accent-deep); font-size: 10px; }
+.deleted-memory-copy > small { display: block; margin-top: 4px; color: var(--faint); font-size: 9px; }
+.deleted-memory-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 7px;
+  min-width: 164px;
+}
+.deleted-memory-actions button { width: 100%; min-height: 38px; padding: 8px 12px; font-size: 10px; }
+.deleted-memory-actions svg { width: 15px; height: 15px; }
+
+@media (max-width: 840px) {
+  .deleted-memory-card { grid-template-columns: 48px minmax(0, 1fr); }
+  .deleted-memory-symbol { width: 48px; height: 48px; }
+  .deleted-memory-actions { grid-column: 1 / -1; grid-template-columns: 1fr 1fr; min-width: 0; }
+}
+
+@media (max-width: 520px) {
+  .deleted-memory-card { grid-template-columns: 1fr; gap: 10px; padding: 15px; }
+  .deleted-memory-symbol { width: 43px; height: 43px; }
+  .deleted-memory-actions { grid-column: auto; grid-template-columns: 1fr; }
+  .deleted-memory-notice { padding: 15px; }
+}
+
+/* Keep Silver's return control separate from the mind-map recovery launcher on touch layouts. */
+@media (max-width: 760px) {
+  .mind-map-return {
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%);
+  }
+}
+'''
+
+
+def patch_root_styles() -> None:
+    path = "src/styles.css"
+    text = read(path)
+    if MARKER not in text:
+        text += root_deleted_styles()
+    write(path, text)
