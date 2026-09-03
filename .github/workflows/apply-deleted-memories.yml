@@ -1,4 +1,5 @@
 name: Apply shared Deleted Memories system
+# Integration revision 2: preserve internal corrupted-map cleanup while testing every user-facing delete route.
 
 on:
   push:
