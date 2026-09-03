@@ -1,0 +1,66 @@
+name: Restore Silver before Deleted Memories
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/restore-pre-deleted-memories.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: silver-exact-restore
+  cancel-in-progress: false
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    env:
+      BASE_COMMIT: c05bc9890ef06fd3cf687e169236ed397c85fb91
+    steps:
+      - name: Check out Silver with complete history
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Restore the exact pre-request repository tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          START_SHA="$(git rev-parse HEAD)"
+          git cat-file -e "${BASE_COMMIT}^{commit}"
+
+          git rm -r --ignore-unmatch .
+          git checkout "${BASE_COMMIT}" -- .
+
+          BASE_TREE="$(git rev-parse "${BASE_COMMIT}^{tree}")"
+          RESTORED_TREE="$(git write-tree)"
+          if [[ "$RESTORED_TREE" != "$BASE_TREE" ]]; then
+            echo "Restored tree $RESTORED_TREE does not match baseline tree $BASE_TREE" >&2
+            git status --short
+            exit 1
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Revert Deleted Memories work and restore prior Silver"
+
+          git fetch origin main
+          REMOTE_SHA="$(git rev-parse origin/main)"
+          if [[ "$REMOTE_SHA" != "$START_SHA" ]]; then
+            echo "main changed during restoration; refusing to overwrite $REMOTE_SHA" >&2
+            exit 1
+          fi
+
+          git push origin HEAD:main
+
+      - name: Verify the committed tree matches the requested baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          test "$(git rev-parse origin/main^{tree})" = "$(git rev-parse ${BASE_COMMIT}^{tree})"
+          echo "Silver is restored exactly to the repository tree from ${BASE_COMMIT}."
