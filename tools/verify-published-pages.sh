@@ -18,7 +18,7 @@ for attempt in {1..30}; do
   if curl --fail --silent --show-error --location \
     "${BASE}index.html?commit=${COMMIT}&attempt=${attempt}" \
     --output "$OUTPUT_DIR/index.html"; then
-    if grep -Fq '20260903-deleted-memories-1' "$OUTPUT_DIR/index.html"; then
+    if grep -Fq '20260903-map-your-mind-1' "$OUTPUT_DIR/index.html"; then
       break
     fi
   fi
@@ -26,13 +26,12 @@ for attempt in {1..30}; do
 done
 
 grep -Fq 'Silver · Private video journal' "$OUTPUT_DIR/index.html"
-grep -Fq '20260903-deleted-memories-1' "$OUTPUT_DIR/index.html"
+grep -Fq '20260903-map-your-mind-1' "$OUTPUT_DIR/index.html"
 
 files=(
   bootstrap.js
   db.js
   archive.js
-  deleted-memories.js
   sw.js
   manifest.webmanifest
   src/app.js
@@ -66,7 +65,6 @@ if curl --fail --silent --show-error --location \
 fi
 
 node --check "$OUTPUT_DIR/bootstrap.js"
-node --check "$OUTPUT_DIR/deleted-memories.js"
 node --check "$OUTPUT_DIR/sw.js"
 node --check "$OUTPUT_DIR/src/app.js"
 cp "$OUTPUT_DIR/mind-map/assets/app.js" "$OUTPUT_DIR/mind-map-app.mjs"
@@ -75,13 +73,8 @@ python3 -m json.tool "$OUTPUT_DIR/manifest.webmanifest" >/dev/null
 python3 -m json.tool "$OUTPUT_DIR/mind-map/UPSTREAM.json" >/dev/null
 
 grep -Fq 'data-action="open-mind-map"' "$OUTPUT_DIR/src/app.js"
-grep -Fq 'restore-deleted-memory' "$OUTPUT_DIR/src/app.js"
-grep -Fq 'data-view="deleted"' "$OUTPUT_DIR/src/shell.html"
-grep -Fq '30 * 24 * 60 * 60 * 1000' "$OUTPUT_DIR/deleted-memories.js"
 grep -Fq 'id="mindMapDialog"' "$OUTPUT_DIR/src/shell.html"
 grep -Fq '/Silver/mind-map/assets/app.js' "$OUTPUT_DIR/mind-map/index.html"
-grep -Fq 'Deleted Memories' "$OUTPUT_DIR/mind-map/assets/app.js"
-grep -Fq 'silver-open-deleted-memories' "$OUTPUT_DIR/mind-map/assets/app.js"
 grep -Fq '78c88c42d2c45f46db480b6499bda90556ba944c' "$OUTPUT_DIR/mind-map/UPSTREAM.json"
 
 printf 'Published Silver and all namespaced Theory build files match commit %s.\n' "$COMMIT"

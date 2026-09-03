@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import type { BrainMeta } from '../types'
-import { DeletedMemoriesButton } from './DeletedMemoriesButton'
 
 export function StartMenu({
   items,
@@ -14,7 +13,7 @@ export function StartMenu({
   onOpen: (id: string) => void
   onCreateBlank: (title: string) => void
   onCreateTheory: () => void
-  onDelete: (id: string) => void | Promise<void>
+  onDelete: (id: string) => void
   onImport: (raw: string) => void
 }) {
   const [title, setTitle] = useState('')
@@ -81,14 +80,13 @@ export function StartMenu({
                 </span>
                 <small>{new Date(item.updatedAt).toLocaleString()}</small>
               </button>
-              <button type="button" className="start-forget" onClick={() => void onDelete(item.id)}>
+              <button type="button" className="start-forget" onClick={() => onDelete(item.id)}>
                 Forget
               </button>
             </article>
           ))
         )}
       </section>
-      <DeletedMemoriesButton />
     </div>
   )
 }

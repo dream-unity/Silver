@@ -1,5 +1,5 @@
 const DB_NAME = 'silver-private-journal';
-const DB_VERSION = 2;
+const DB_VERSION = 1;
 
 const STORES = Object.freeze({
   journals: 'journals',
@@ -7,8 +7,7 @@ const STORES = Object.freeze({
   entries: 'entries',
   attachments: 'attachments',
   templates: 'templates',
-  settings: 'settings',
-  deletedMemories: 'deletedMemories'
+  settings: 'settings'
 });
 
 let databasePromise;
@@ -80,13 +79,6 @@ export function openDatabase() {
 
       if (!db.objectStoreNames.contains(STORES.settings)) {
         db.createObjectStore(STORES.settings, { keyPath: 'key' });
-      }
-
-      if (!db.objectStoreNames.contains(STORES.deletedMemories)) {
-        const store = db.createObjectStore(STORES.deletedMemories, { keyPath: 'id' });
-        store.createIndex('kind', 'kind', { unique: false });
-        store.createIndex('deletedAt', 'deletedAt', { unique: false });
-        store.createIndex('expiresAt', 'expiresAt', { unique: false });
       }
     };
     request.onsuccess = () => {

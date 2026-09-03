@@ -1,4 +1,4 @@
-const BUILD = '20260903-deleted-memories-1';
+const BUILD = '20260903-map-your-mind-1';
 const versioned = path => `${path}?v=${BUILD}`;
 
 const assets = {
