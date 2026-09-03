@@ -1,0 +1,160 @@
+        text = replace_once(text, archive_import, archive_import + import_block, "Deleted Memories import")
+    text = replace_once(
+        text,
+        "const VIEWS = new Set(['today', 'timeline', 'calendar', 'memories', 'media', 'places', 'favorites']);",
+        "const VIEWS = new Set(['today', 'timeline', 'calendar', 'memories', 'media', 'places', 'favorites', 'deleted']);",
+        "Deleted Memories view registration",
+    )
+    if "deletedMemories: []" not in text:
+        text = replace_once(
+            text,
+            "  mindMapReturnFocus: null\n};",
+            "  mindMapReturnFocus: null,\n  deletedMemories: [],\n  deletedMemoriesUnsubscribe: null\n};",
+            "Deleted Memories state insertion",
+        )
+    if "'deletedMemoriesCount'" not in text:
+        text = replace_once(
+            text,
+            "    'settingsButton', 'installButton', 'storageStatus', 'globalSearch', 'lockButton', 'newEntryButton',",
+            "    'settingsButton', 'installButton', 'storageStatus', 'globalSearch', 'lockButton', 'newEntryButton',\n    'deletedMemoriesCount',",
+            "Deleted Memories element cache",
+        )
+    if "async function refreshDeletedMemories" not in text:
+        text = replace_once(text, "function renderSidebar()", deleted_root_functions() + "function renderSidebar()", "Deleted Memories root functions")
+    if "updateDeletedMemoriesCount();\n\n  document.querySelectorAll('.primary-nav" not in text:
+        text = replace_once(
+            text,
+            "  el.journalList.innerHTML = html;\n\n  document.querySelectorAll('.primary-nav [data-view]').forEach(button => {",
+            "  el.journalList.innerHTML = html;\n  updateDeletedMemoriesCount();\n\n  document.querySelectorAll('.primary-nav [data-view]').forEach(button => {",
+            "Deleted Memories sidebar count",
+        )
+    text = replace_once(
+        text,
+        "  else if (state.view === 'favorites') html = renderFavorites();\n  el.viewRoot.innerHTML = html;",
+        "  else if (state.view === 'favorites') html = renderFavorites();\n  else if (state.view === 'deleted') html = renderDeletedMemories();\n  el.viewRoot.innerHTML = html;",
+        "Deleted Memories render switch",
+    )
+    text = replace_once(
+        text,
+        "    await Promise.all([...state.removedAttachmentIds].map(deleteAttachment));",
+        "    await Promise.all([...state.removedAttachmentIds].map(moveJournalAttachmentToDeletedMemories));",
+        "attachment recovery routing",
+    )
+    text = regex_once(
+        text,
+        r"async function deleteCurrentEntry\(\) \{.*?\n\}\n\nasync function toggleFavorite",
+        r'''async function deleteCurrentEntry() {
+  if (!state.editorEntryId) return;
+  const entry = entryById(state.editorEntryId);
+  if (!entry) return;
+  if (!confirm(`Move “${entry.title || 'Untitled entry'}” to Deleted Memories? It can be restored for 30 days.`)) return;
+  try {
+    await moveJournalEntryToDeletedMemories(state.editorEntryId);
+    await reloadLibrary();
+    await refreshDeletedMemories();
+    closeEditor();
+    renderAll();
+    showToast('Entry moved to Deleted Memories for 30 days.');
+  } catch (error) {
+    console.error(error);
+    showToast(error.message || 'The entry could not be moved to Deleted Memories.');
+  }
+}
+
+async function toggleFavorite''',
+        "journal-entry soft deletion",
+        re.S,
+    )
+    text = regex_once(
+        text,
+        r"async function removeCurrentJournal\(\) \{.*?\n\}\n\nasync function addNewCollection",
+        r'''async function removeCurrentJournal() {
+  const journal = state.editingJournalId ? journalById(state.editingJournalId) : null;
+  if (!journal) return;
+  if (state.library.journals.length <= 1) return showToast('Silver must keep at least one journal.');
+  const fallback = state.library.journals.find(item => item.id !== journal.id && item.isDefault) || state.library.journals.find(item => item.id !== journal.id);
+  const count = state.library.entries.filter(entry => entry.journalId === journal.id).length;
+  if (!confirm(`Move the “${journal.name}” journal to Deleted Memories? ${count ? `${count} existing ${count === 1 ? 'entry' : 'entries'} will remain safely available in “${fallback.name}”.` : 'It contains no entries.'} The journal can be restored for 30 days.`)) return;
+  await moveJournalToDeletedMemories(journal.id, fallback.id);
+  if (state.selectedJournalId === journal.id) state.selectedJournalId = '';
+  await reloadLibrary();
+  await refreshDeletedMemories();
+  el.journalDialog.close();
+  renderAll();
+  renderJournalManager();
+  showToast('Journal moved to Deleted Memories. Its entries remain available.');
+}
+
+async function addNewCollection''',
+        "journal soft deletion",
+        re.S,
+    )
+    text = regex_once(
+        text,
+        r"async function removeCollectionById\(collectionId\) \{.*?\n\}\n\nasync function removeTemplateById",
+        r'''async function removeCollectionById(collectionId) {
+  const collection = state.library.collections.find(item => item.id === collectionId);
+  if (!collection) return;
+  if (!confirm(`Move the “${collection.name}” collection to Deleted Memories? Its journals and entries will remain available, and the collection can be restored for 30 days.`)) return;
+  await moveCollectionToDeletedMemories(collectionId);
+  await reloadLibrary();
+  await refreshDeletedMemories();
+  renderAll();
+  renderJournalManager();
+  showToast('Collection moved to Deleted Memories.');
+}
+
+async function removeTemplateById''',
+        "collection soft deletion",
+        re.S,
+    )
+    text = regex_once(
+        text,
+        r"async function removeTemplateById\(templateId\) \{.*?\n\}\n\nfunction bytesToBase64",
+        r'''async function removeTemplateById(templateId) {
+  const template = state.library.templates.find(item => item.id === templateId);
+  if (!template || !confirm(`Move the “${template.name}” template to Deleted Memories? Existing entries will not change, and the template can be restored for 30 days.`)) return;
+  await moveTemplateToDeletedMemories(templateId);
+  await reloadLibrary();
+  await refreshDeletedMemories();
+  renderTemplateManager();
+  populateEditorSelectors();
+  renderAll();
+  showToast('Template moved to Deleted Memories.');
+}
+
+function bytesToBase64''',
+        "template soft deletion",
+        re.S,
+    )
+    text = replace_once(
+        text,
+        "  const confirmation = prompt('This permanently deletes every local entry and media file. Type ERASE to continue.');",
+        "  const confirmation = prompt('This permanently deletes every local entry, media file and item in Deleted Memories. Type ERASE to continue.');",
+        "permanent erase wording",
+    )
+    if "restore-deleted-memory" not in text[text.find("document.addEventListener('click'"):]:
+        text = replace_once(
+            text,
+            "    else if (action === 'export-entry' && entryId) await exportEntry(entryId);\n    else if (action === 'edit-journal') openJournalDialog(actionElement.dataset.journalId);",
+            "    else if (action === 'export-entry' && entryId) await exportEntry(entryId);\n"
+            "    else if (action === 'restore-deleted-memory') await restoreMemoryById(actionElement.dataset.memoryId);\n"
+            "    else if (action === 'permanently-delete-memory') await permanentlyDeleteMemoryById(actionElement.dataset.memoryId);\n"
+            "    else if (action === 'empty-deleted-memories') await emptyDeletedMemoriesNow();\n"
+            "    else if (action === 'edit-journal') openJournalDialog(actionElement.dataset.journalId);",
+            "Deleted Memories delegated actions",
+        )
+    text = regex_once(
+        text,
+        r"function handleLaunchParameters\(\) \{.*?\n\}\n\nfunction handlePendingLaunchAction",
+        r'''function handleLaunchParameters() {
+  const params = new URLSearchParams(location.search);
+  const requestedView = params.get('view');
+  const sharedTitle = params.get('title') || '';
+  const sharedText = params.get('text') || '';
+  const sharedUrl = params.get('url') || '';
+  const newMode = params.get('new');
+  if (requestedView && VIEWS.has(requestedView)) state.view = requestedView;
+  if (sharedTitle || sharedText || sharedUrl) {
+    state.pendingLaunchAction = { type: 'entry', initial: { title: sharedTitle, body: [sharedText, sharedUrl].filter(Boolean).join('\n\n') } };
+  } else if (newMode) {
