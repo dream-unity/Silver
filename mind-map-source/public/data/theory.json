@@ -1,0 +1,2767 @@
+{
+  "schemaVersion": 1,
+  "meta": {
+    "id": "dream-unity-theory",
+    "title": "Dream Unity",
+    "subtitle": "A living map from ether to embodiment and back again",
+    "repository": "dream-unity/theory",
+    "branch": "theory-live",
+    "dataPath": "public/data/theory.json",
+    "revision": 1,
+    "createdAt": "2026-08-31T00:00:00.000Z",
+    "updatedAt": "2026-08-31T00:00:00.000Z"
+  },
+  "nodes": [
+    {
+      "id": "unity-core",
+      "slug": "unity-core",
+      "type": "model",
+      "title": "Dream Unity",
+      "essence": "Dream worlds are compressed, synthesised and realised in the physical before returning, transformed, to their originating ether.",
+      "bodyMarkdown": "The central living model. Dream Unity is not merely a collection of imagined worlds; it is a cycle through which potential becomes form, forms discover relation, relation becomes strategy, and strategy becomes embodied reality. Return preserves what was learned while reopening possibility.",
+      "aliases": [],
+      "facets": {
+        "portals": [
+          "unity"
+        ],
+        "forms": [
+          "consciousness",
+          "relational",
+          "strategic"
+        ],
+        "phases": [
+          "formation",
+          "compression",
+          "synthesis",
+          "realisation",
+          "return"
+        ],
+        "scales": [],
+        "topics": [
+          "core",
+          "unity"
+        ]
+      },
+      "epistemics": {
+        "maturity": "integrated",
+        "stance": "provisional",
+        "confidence": "unknown",
+        "knowledgeModes": [
+          "speculative"
+        ]
+      },
+      "sources": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "ether",
+      "slug": "ether",
+      "type": "concept",
+      "title": "Ether",
+      "essence": "The field of uncommitted potential from which forms arise and to which completed forms can return.",
+      "bodyMarkdown": "",
+      "aliases": [],
+      "facets": {
+        "portals": [
+          "unity"
+        ],
+        "forms": [
+          "consciousness"
+        ],
+        "phases": [
+          "ether",
+          "return"
+        ],
+        "scales": [],
+        "topics": [
+          "origin"
+        ]
+      },
+      "epistemics": {
+        "maturity": "articulated",
+        "stance": "provisional",
+        "confidence": "unknown",
+        "knowledgeModes": [
+          "speculative"
+        ]
+      },
+      "sources": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "compression",
+      "slug": "compression",
+      "type": "mechanism",
+      "title": "Compression",
+      "essence": "Distillation that preserves generative structure while removing noise and repetition.",
+      "bodyMarkdown": "",
+      "aliases": [],
+      "facets": {
+        "portals": [
+          "machine",
+          "unity"
+        ],
+        "forms": [
+          "relational"
+        ],
+        "phases": [
+          "compression"
+        ],
+        "scales": [],
+        "topics": [
+          "transformation"
+        ]
+      },
+      "epistemics": {
+        "maturity": "articulated",
+        "stance": "provisional",
+        "confidence": "unknown",
+        "knowledgeModes": [
+          "speculative"
+        ]
+      },
+      "sources": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "synthesis",
+      "slug": "synthesis",
+      "type": "mechanism",
+      "title": "Synthesis",
+      "essence": "A reversible unity that creates something new without erasing the irreducible difference of its sources.",
+      "bodyMarkdown": "",
+      "aliases": [],
+      "facets": {
+        "portals": [
+          "machine",
+          "unity"
+        ],
+        "forms": [
+          "relational"
+        ],
+        "phases": [
+          "synthesis"
+        ],
+        "scales": [],
+        "topics": [
+          "transformation"
+        ]
+      },
+      "epistemics": {
+        "maturity": "articulated",
+        "stance": "provisional",
+        "confidence": "unknown",
+        "knowledgeModes": [
+          "speculative"
+        ]
+      },
+      "sources": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "realisation",
+      "slug": "realisation",
+      "type": "mechanism",
+      "title": "Realisation",
+      "essence": "The passage from inward possibility to embodied act, artifact, practice or observable consequence.",
+      "bodyMarkdown": "",
+      "aliases": [],
+      "facets": {
+        "portals": [
+          "world",
+          "unity"
+        ],
+        "forms": [
+          "strategic"
+        ],
+        "phases": [
+          "realisation"
+        ],
+        "scales": [],
+        "topics": [
+          "embodiment"
+        ]
+      },
+      "epistemics": {
+        "maturity": "articulated",
+        "stance": "provisional",
+        "confidence": "unknown",
+        "knowledgeModes": [
+          "speculative"
+        ]
+      },
+      "sources": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "return",
+      "slug": "return",
+      "type": "mechanism",
+      "title": "Return to Ether",
+      "essence": "Reversible release: a form is archived, unfolded or reopened without destroying its lineage.",
+      "bodyMarkdown": "",
+      "aliases": [],
+      "facets": {
+        "portals": [
+          "unity"
+        ],
+        "forms": [
+          "consciousness"
+        ],
+        "phases": [
+          "reflection",
+          "return"
+        ],
+        "scales": [],
+        "topics": [
+          "origin"
+        ]
+      },
+      "epistemics": {
+        "maturity": "articulated",
+        "stance": "provisional",
+        "confidence": "unknown",
+        "knowledgeModes": [
+          "speculative"
+        ]
+      },
+      "sources": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "dream-maker",
+      "slug": "dream-maker",
+      "type": "model",
+      "title": "Dream Maker",
+      "essence": "The domain in which imagination, identity and agency deliberately form inner possibility.",
+      "bodyMarkdown": "",
+      "aliases": [],
+      "facets": {
+        "portals": [
+          "maker"
+        ],
+        "forms": [
+          "consciousness"
+        ],
+        "phases": [
+          "formation"
+        ],
+        "scales": [],
+        "topics": [
+          "architecture"
+        ]
+      },
+      "epistemics": {
+        "maturity": "articulated",
+        "stance": "provisional",
+        "confidence": "unknown",
+        "knowledgeModes": [
+          "speculative"
+        ]
+      },
+      "sources": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "dream-machine",
+      "slug": "dream-machine",
+      "type": "model",
+      "title": "Dream Machine",
+      "essence": "The domain in which relations, constraints and generative processes transform forms into coherent models.",
+      "bodyMarkdown": "",
+      "aliases": [],
+      "facets": {
+        "portals": [
+          "machine"
+        ],
+        "forms": [
+          "relational"
+        ],
+        "phases": [
+          "compression",
+          "synthesis"
+        ],
+        "scales": [],
+        "topics": [
+          "architecture"
+        ]
+      },
+      "epistemics": {
+        "maturity": "articulated",
+        "stance": "provisional",
+        "confidence": "unknown",
+        "knowledgeModes": [
+          "speculative"
+        ]
+      },
+      "sources": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "dream-world",
+      "slug": "dream-world",
+      "type": "model",
+      "title": "Dream World",
+      "essence": "The domain in which models become navigable environments, artifacts and lived consequences.",
+      "bodyMarkdown": "",
+      "aliases": [],
+      "facets": {
+        "portals": [
+          "world"
+        ],
+        "forms": [
+          "strategic"
+        ],
+        "phases": [
+          "realisation",
+          "reflection"
+        ],
+        "scales": [],
+        "topics": [
+          "architecture"
+        ]
+      },
+      "epistemics": {
+        "maturity": "articulated",
+        "stance": "provisional",
+        "confidence": "unknown",
+        "knowledgeModes": [
+          "speculative"
+        ]
+      },
+      "sources": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "consciousness-forms",
+      "slug": "consciousness-forms",
+      "type": "model",
+      "title": "Consciousness Forms",
+      "essence": "Sensory, affective, imaginal and belief-structured forms that shape what can be experienced.",
+      "bodyMarkdown": "",
+      "aliases": [],
+      "facets": {
+        "portals": [
+          "maker"
+        ],
+        "forms": [
+          "consciousness"
+        ],
+        "phases": [
+          "formation"
+        ],
+        "scales": [],
+        "topics": [
+          "forms"
+        ]
+      },
+      "epistemics": {
+        "maturity": "articulated",
+        "stance": "provisional",
+        "confidence": "unknown",
+        "knowledgeModes": [
+          "speculative"
+        ]
+      },
+      "sources": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "relational-forms",
+      "slug": "relational-forms",
+      "type": "model",
+      "title": "Relational Forms",
+      "essence": "Patterns, analogies, distinctions and transformations through which separate forms become intelligible together.",
+      "bodyMarkdown": "",
+      "aliases": [],
+      "facets": {
+        "portals": [
+          "machine"
+        ],
+        "forms": [
+          "relational"
+        ],
+        "phases": [
+          "compression",
+          "synthesis"
+        ],
+        "scales": [],
+        "topics": [
+          "forms"
+        ]
+      },
+      "epistemics": {
+        "maturity": "articulated",
+        "stance": "provisional",
+        "confidence": "unknown",
+        "knowledgeModes": [
+          "speculative"
+        ]
+      },
+      "sources": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "strategic-forms",
+      "slug": "strategic-forms",
+      "type": "model",
+      "title": "Strategic Forms",
+      "essence": "Models of action that coordinate choice, prediction, commitment and execution through time.",
+      "bodyMarkdown": "",
+      "aliases": [],
+      "facets": {
+        "portals": [
+          "world"
+        ],
+        "forms": [
+          "strategic"
+        ],
+        "phases": [
+          "realisation"
+        ],
+        "scales": [],
+        "topics": [
+          "forms"
+        ]
+      },
+      "epistemics": {
+        "maturity": "articulated",
+        "stance": "provisional",
+        "confidence": "unknown",
+        "knowledgeModes": [
+          "speculative"
+        ]
+      },
+      "sources": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "primality",
+      "slug": "primality",
+      "type": "concept",
+      "title": "Primality",
+      "essence": "The living capacity to originate impulse, test limits and extend one’s nature without surrendering authorship.",
+      "bodyMarkdown": "",
+      "aliases": [],
+      "facets": {
+        "portals": [
+          "maker"
+        ],
+        "forms": [
+          "consciousness"
+        ],
+        "phases": [
+          "formation"
+        ],
+        "scales": [],
+        "topics": [
+          "freedom"
+        ]
+      },
+      "epistemics": {
+        "maturity": "articulated",
+        "stance": "provisional",
+        "confidence": "unknown",
+        "knowledgeModes": [
+          "speculative"
+        ]
+      },
+      "sources": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "sovereignty",
+      "slug": "sovereignty",
+      "type": "concept",
+      "title": "Sovereignty",
+      "essence": "Integrated authority over one’s awareness, choices and creative direction.",
+      "bodyMarkdown": "",
+      "aliases": [],
+      "facets": {
+        "portals": [
+          "maker",
+          "world"
+        ],
+        "forms": [
+          "consciousness",
+          "strategic"
+        ],
+        "phases": [
+          "formation",
+          "realisation"
+        ],
+        "scales": [],
+        "topics": [
+          "freedom"
+        ]
+      },
+      "epistemics": {
+        "maturity": "articulated",
+        "stance": "provisional",
+        "confidence": "unknown",
+        "knowledgeModes": [
+          "speculative"
+        ]
+      },
+      "sources": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "agency",
+      "slug": "agency",
+      "type": "concept",
+      "title": "Agency",
+      "essence": "The capacity to choose and act from an authored centre rather than merely react to the system.",
+      "bodyMarkdown": "",
+      "aliases": [],
+      "facets": {
+        "portals": [
+          "maker",
+          "world"
+        ],
+        "forms": [
+          "consciousness",
+          "strategic"
+        ],
+        "phases": [
+          "formation",
+          "realisation"
+        ],
+        "scales": [],
+        "topics": [
+          "freedom"
+        ]
+      },
+      "epistemics": {
+        "maturity": "articulated",
+        "stance": "provisional",
+        "confidence": "unknown",
+        "knowledgeModes": [
+          "speculative"
+        ]
+      },
+      "sources": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "imagination",
+      "slug": "imagination",
+      "type": "concept",
+      "title": "Imagination",
+      "essence": "The faculty that generates forms not yet constrained to present physical conditions.",
+      "bodyMarkdown": "",
+      "aliases": [],
+      "facets": {
+        "portals": [
+          "maker"
+        ],
+        "forms": [
+          "consciousness"
+        ],
+        "phases": [
+          "ether",
+          "formation"
+        ],
+        "scales": [],
+        "topics": [
+          "creation"
+        ]
+      },
+      "epistemics": {
+        "maturity": "articulated",
+        "stance": "provisional",
+        "confidence": "unknown",
+        "knowledgeModes": [
+          "speculative"
+        ]
+      },
+      "sources": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "ghost-mirror",
+      "slug": "ghost-mirror",
+      "type": "model",
+      "title": "The Ghost in the Mirror",
+      "essence": "A reflected representation that ceases to serve the living self and begins governing it.",
+      "bodyMarkdown": "A diagnostic model of inversion: the material image, social proxy or self-concept becomes more vital than the living primal source it once reflected. The question “Who am I?” can then be generated by the reflected system rather than by recovered agency.",
+      "aliases": [],
+      "facets": {
+        "portals": [
+          "maker",
+          "machine"
+        ],
+        "forms": [
+          "consciousness",
+          "relational"
+        ],
+        "phases": [
+          "reflection"
+        ],
+        "scales": [],
+        "topics": [
+          "mirror",
+          "freedom"
+        ]
+      },
+      "epistemics": {
+        "maturity": "articulated",
+        "stance": "provisional",
+        "confidence": "unknown",
+        "knowledgeModes": [
+          "speculative"
+        ]
+      },
+      "sources": [],
+      "mirror": {
+        "directExperience": "Living impulse, embodied vitality and authored desire.",
+        "representation": "The self-image, social role or material proxy that originally reflected the living source.",
+        "primalValue": "Sovereignty over one’s own creative direction.",
+        "inversionRisk": "The reflection becomes the governor of the source.",
+        "falsifier": "A proxy that consistently expands rather than narrows authored agency would resist the inversion claim.",
+        "restoringAction": "Reconnect representation to a chosen embodied act and test whether agency increases."
+      },
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "material-inversion",
+      "slug": "material-inversion",
+      "type": "mechanism",
+      "title": "Material Inversion",
+      "essence": "The proxy, image or possession becomes more vital than the living capacity it was meant to extend.",
+      "bodyMarkdown": "",
+      "aliases": [],
+      "facets": {
+        "portals": [
+          "machine",
+          "world"
+        ],
+        "forms": [
+          "relational",
+          "strategic"
+        ],
+        "phases": [
+          "reflection"
+        ],
+        "scales": [],
+        "topics": [
+          "mirror",
+          "freedom"
+        ]
+      },
+      "epistemics": {
+        "maturity": "articulated",
+        "stance": "provisional",
+        "confidence": "unknown",
+        "knowledgeModes": [
+          "speculative"
+        ]
+      },
+      "sources": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "domestication",
+      "slug": "domestication",
+      "type": "claim",
+      "title": "Domestication of Vitality",
+      "essence": "Repeated external governance progressively narrows spontaneous agency into predictable compliance.",
+      "bodyMarkdown": "",
+      "aliases": [],
+      "facets": {
+        "portals": [
+          "maker",
+          "world"
+        ],
+        "forms": [
+          "consciousness",
+          "strategic"
+        ],
+        "phases": [
+          "reflection"
+        ],
+        "scales": [],
+        "topics": [
+          "mirror",
+          "freedom"
+        ]
+      },
+      "epistemics": {
+        "maturity": "articulated",
+        "stance": "provisional",
+        "confidence": "unknown",
+        "knowledgeModes": [
+          "speculative"
+        ]
+      },
+      "sources": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "inner-light",
+      "slug": "inner-light",
+      "type": "concept",
+      "title": "Inner Light",
+      "essence": "A lived centre of value and orientation that does not require the outer world to authorise its existence.",
+      "bodyMarkdown": "",
+      "aliases": [],
+      "facets": {
+        "portals": [
+          "maker"
+        ],
+        "forms": [
+          "consciousness"
+        ],
+        "phases": [
+          "formation"
+        ],
+        "scales": [],
+        "topics": [
+          "freedom"
+        ]
+      },
+      "epistemics": {
+        "maturity": "articulated",
+        "stance": "provisional",
+        "confidence": "unknown",
+        "knowledgeModes": [
+          "speculative"
+        ]
+      },
+      "sources": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "creative-freedom",
+      "slug": "creative-freedom",
+      "type": "concept",
+      "title": "Creative Freedom",
+      "essence": "The practical ability to transform imagination into chosen form while retaining responsibility for consequences.",
+      "bodyMarkdown": "",
+      "aliases": [],
+      "facets": {
+        "portals": [
+          "maker",
+          "world",
+          "unity"
+        ],
+        "forms": [
+          "consciousness",
+          "strategic"
+        ],
+        "phases": [
+          "synthesis",
+          "realisation"
+        ],
+        "scales": [],
+        "topics": [
+          "freedom",
+          "creation"
+        ]
+      },
+      "epistemics": {
+        "maturity": "articulated",
+        "stance": "provisional",
+        "confidence": "unknown",
+        "knowledgeModes": [
+          "speculative"
+        ]
+      },
+      "sources": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "wisdom",
+      "slug": "wisdom",
+      "type": "concept",
+      "title": "Wisdom",
+      "essence": "The capacity to exercise freedom without becoming enslaved by the instruments, pleasures or images freedom makes available.",
+      "bodyMarkdown": "",
+      "aliases": [],
+      "facets": {
+        "portals": [
+          "unity"
+        ],
+        "forms": [
+          "relational",
+          "strategic"
+        ],
+        "phases": [
+          "reflection"
+        ],
+        "scales": [],
+        "topics": [
+          "freedom"
+        ]
+      },
+      "epistemics": {
+        "maturity": "articulated",
+        "stance": "provisional",
+        "confidence": "unknown",
+        "knowledgeModes": [
+          "speculative"
+        ]
+      },
+      "sources": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "embodied-awareness",
+      "slug": "embodied-awareness",
+      "type": "claim",
+      "title": "Embodied Awareness",
+      "essence": "Physical limitation is a testing ground through which awareness becomes demonstrable agency.",
+      "bodyMarkdown": "",
+      "aliases": [],
+      "facets": {
+        "portals": [
+          "world"
+        ],
+        "forms": [
+          "consciousness",
+          "strategic"
+        ],
+        "phases": [
+          "realisation"
+        ],
+        "scales": [],
+        "topics": [
+          "embodiment",
+          "freedom"
+        ]
+      },
+      "epistemics": {
+        "maturity": "articulated",
+        "stance": "provisional",
+        "confidence": "unknown",
+        "knowledgeModes": [
+          "speculative"
+        ]
+      },
+      "sources": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "become",
+      "slug": "become",
+      "type": "practice",
+      "title": "Become",
+      "essence": "A practice for deliberately switching sensory form, vibe, reality frame and belief before applying the shift to life.",
+      "bodyMarkdown": "",
+      "aliases": [],
+      "facets": {
+        "portals": [
+          "maker",
+          "world"
+        ],
+        "forms": [
+          "consciousness",
+          "strategic"
+        ],
+        "phases": [
+          "formation",
+          "realisation"
+        ],
+        "scales": [],
+        "topics": [
+          "training"
+        ]
+      },
+      "epistemics": {
+        "maturity": "articulated",
+        "stance": "provisional",
+        "confidence": "unknown",
+        "knowledgeModes": [
+          "design"
+        ]
+      },
+      "sources": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "relational-training",
+      "slug": "relational-training",
+      "type": "practice",
+      "title": "Relational Training",
+      "essence": "Practice across analogy, topology, constraints, trajectories and rule systems to make relation itself more flexible.",
+      "bodyMarkdown": "",
+      "aliases": [],
+      "facets": {
+        "portals": [
+          "machine"
+        ],
+        "forms": [
+          "relational"
+        ],
+        "phases": [
+          "compression",
+          "synthesis"
+        ],
+        "scales": [],
+        "topics": [
+          "training"
+        ]
+      },
+      "epistemics": {
+        "maturity": "articulated",
+        "stance": "provisional",
+        "confidence": "unknown",
+        "knowledgeModes": [
+          "design"
+        ]
+      },
+      "sources": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "action-cycle",
+      "slug": "action-cycle",
+      "type": "mechanism",
+      "title": "Observe → Integrate → Predict → Commit → Execute",
+      "essence": "A strategic cycle that carries perception through a model and into decisive embodied action.",
+      "bodyMarkdown": "",
+      "aliases": [],
+      "facets": {
+        "portals": [
+          "world"
+        ],
+        "forms": [
+          "relational",
+          "strategic"
+        ],
+        "phases": [
+          "synthesis",
+          "realisation"
+        ],
+        "scales": [],
+        "topics": [
+          "training",
+          "strategy"
+        ]
+      },
+      "epistemics": {
+        "maturity": "articulated",
+        "stance": "provisional",
+        "confidence": "unknown",
+        "knowledgeModes": [
+          "speculative"
+        ]
+      },
+      "sources": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "unity-forge",
+      "slug": "unity-forge",
+      "type": "practice",
+      "title": "Unity Forge",
+      "essence": "A synthesis practice that records shared invariants, irreducible differences, tensions, emergence and omissions.",
+      "bodyMarkdown": "",
+      "aliases": [],
+      "facets": {
+        "portals": [
+          "machine",
+          "unity"
+        ],
+        "forms": [
+          "relational"
+        ],
+        "phases": [
+          "compression",
+          "synthesis"
+        ],
+        "scales": [],
+        "topics": [
+          "method"
+        ]
+      },
+      "epistemics": {
+        "maturity": "articulated",
+        "stance": "provisional",
+        "confidence": "unknown",
+        "knowledgeModes": [
+          "design"
+        ]
+      },
+      "sources": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "mirror-test",
+      "slug": "mirror-test",
+      "type": "practice",
+      "title": "Mirror Test",
+      "essence": "A diagnostic that separates lived essence from representation and names the proxy, inversion risk and restoring action.",
+      "bodyMarkdown": "",
+      "aliases": [],
+      "facets": {
+        "portals": [
+          "maker",
+          "unity"
+        ],
+        "forms": [
+          "consciousness",
+          "relational"
+        ],
+        "phases": [
+          "reflection"
+        ],
+        "scales": [],
+        "topics": [
+          "method",
+          "mirror"
+        ]
+      },
+      "epistemics": {
+        "maturity": "articulated",
+        "stance": "provisional",
+        "confidence": "unknown",
+        "knowledgeModes": [
+          "design"
+        ]
+      },
+      "sources": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "reality-bridge",
+      "slug": "reality-bridge",
+      "type": "practice",
+      "title": "Reality Bridge",
+      "essence": "A method that connects a claim to a practice, prediction, observable outcome and reflective update.",
+      "bodyMarkdown": "",
+      "aliases": [],
+      "facets": {
+        "portals": [
+          "world",
+          "unity"
+        ],
+        "forms": [
+          "strategic"
+        ],
+        "phases": [
+          "realisation",
+          "reflection"
+        ],
+        "scales": [],
+        "topics": [
+          "method",
+          "embodiment"
+        ]
+      },
+      "epistemics": {
+        "maturity": "articulated",
+        "stance": "provisional",
+        "confidence": "unknown",
+        "knowledgeModes": [
+          "design"
+        ]
+      },
+      "sources": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "question-unification",
+      "slug": "question-unification",
+      "type": "question",
+      "title": "What survives unification?",
+      "essence": "Which invariants must remain when dream forms are compressed, and which losses would falsify the synthesis?",
+      "bodyMarkdown": "",
+      "aliases": [],
+      "facets": {
+        "portals": [
+          "unity"
+        ],
+        "forms": [
+          "relational"
+        ],
+        "phases": [
+          "compression",
+          "synthesis"
+        ],
+        "scales": [],
+        "topics": [
+          "open-question"
+        ]
+      },
+      "epistemics": {
+        "maturity": "articulated",
+        "stance": "provisional",
+        "confidence": "unknown",
+        "knowledgeModes": [
+          "speculative"
+        ]
+      },
+      "sources": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "tension-freedom-constraint",
+      "slug": "tension-freedom-constraint",
+      "type": "tension",
+      "title": "Freedom and Constraint",
+      "essence": "Agency requires constraint to become testable, yet constraint can also harden into domestication.",
+      "bodyMarkdown": "",
+      "aliases": [],
+      "facets": {
+        "portals": [
+          "unity"
+        ],
+        "forms": [
+          "relational",
+          "strategic"
+        ],
+        "phases": [
+          "reflection"
+        ],
+        "scales": [],
+        "topics": [
+          "tension",
+          "freedom"
+        ]
+      },
+      "epistemics": {
+        "maturity": "articulated",
+        "stance": "provisional",
+        "confidence": "unknown",
+        "knowledgeModes": [
+          "speculative"
+        ]
+      },
+      "sources": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "ghost-essay",
+      "slug": "ghost-essay",
+      "type": "document",
+      "title": "The Ghost in the Mirror — Of Slavery and Freedom",
+      "essence": "A named source awaiting attachment of the author’s canonical text before its claims can be treated as grounded.",
+      "bodyMarkdown": "## Source required\n\nThe founding text was not supplied to this repository. Attach the canonical essay, URL, or immutable content hash here before accepting relations derived from it.",
+      "aliases": [],
+      "facets": {
+        "portals": [
+          "maker",
+          "unity"
+        ],
+        "forms": [
+          "consciousness",
+          "relational"
+        ],
+        "phases": [
+          "reflection"
+        ],
+        "scales": [],
+        "topics": [
+          "source",
+          "mirror"
+        ]
+      },
+      "epistemics": {
+        "maturity": "articulated",
+        "stance": "provisional",
+        "confidence": "unknown",
+        "knowledgeModes": [
+          "speculative"
+        ]
+      },
+      "sources": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-1",
+      "from": "ether",
+      "to": "imagination",
+      "relation": "gives rise to",
+      "family": "dynamics",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "edge-2",
+      "from": "imagination",
+      "to": "consciousness-forms",
+      "relation": "forms",
+      "family": "dynamics",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "edge-3",
+      "from": "consciousness-forms",
+      "to": "compression",
+      "relation": "are distilled by",
+      "family": "dynamics",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "edge-4",
+      "from": "compression",
+      "to": "relational-forms",
+      "relation": "reveals reusable relations as",
+      "family": "dynamics",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "edge-5",
+      "from": "consciousness-forms",
+      "to": "relational-forms",
+      "relation": "become intelligible through",
+      "family": "dynamics",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "edge-6",
+      "from": "relational-forms",
+      "to": "synthesis",
+      "relation": "are integrated by",
+      "family": "integration",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "edge-7",
+      "from": "synthesis",
+      "to": "strategic-forms",
+      "relation": "organises relations into",
+      "family": "integration",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "edge-8",
+      "from": "relational-forms",
+      "to": "strategic-forms",
+      "relation": "inform",
+      "family": "dynamics",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "edge-9",
+      "from": "strategic-forms",
+      "to": "realisation",
+      "relation": "direct",
+      "family": "dynamics",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "edge-10",
+      "from": "realisation",
+      "to": "return",
+      "relation": "is reflected through",
+      "family": "dynamics",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "edge-11",
+      "from": "return",
+      "to": "ether",
+      "relation": "reopens",
+      "family": "dynamics",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "edge-12",
+      "from": "dream-maker",
+      "to": "consciousness-forms",
+      "relation": "cultivates",
+      "family": "structure",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "edge-13",
+      "from": "dream-machine",
+      "to": "relational-forms",
+      "relation": "operates through",
+      "family": "structure",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "edge-14",
+      "from": "dream-world",
+      "to": "strategic-forms",
+      "relation": "embodies",
+      "family": "structure",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "edge-15",
+      "from": "compression",
+      "to": "synthesis",
+      "relation": "prepares",
+      "family": "dynamics",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "edge-16",
+      "from": "synthesis",
+      "to": "realisation",
+      "relation": "makes coherent for",
+      "family": "dynamics",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "edge-17",
+      "from": "primality",
+      "to": "agency",
+      "relation": "expresses itself through",
+      "family": "dynamics",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "edge-18",
+      "from": "agency",
+      "to": "sovereignty",
+      "relation": "develops into",
+      "family": "dynamics",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "edge-19",
+      "from": "imagination",
+      "to": "creative-freedom",
+      "relation": "supplies possibility to",
+      "family": "dynamics",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "edge-20",
+      "from": "agency",
+      "to": "creative-freedom",
+      "relation": "enables",
+      "family": "dynamics",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "edge-21",
+      "from": "wisdom",
+      "to": "creative-freedom",
+      "relation": "governs",
+      "family": "dynamics",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "edge-22",
+      "from": "material-inversion",
+      "to": "ghost-mirror",
+      "relation": "produces",
+      "family": "dynamics",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "edge-23",
+      "from": "ghost-mirror",
+      "to": "domestication",
+      "relation": "governs impulse through",
+      "family": "dynamics",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "edge-24",
+      "from": "domestication",
+      "to": "primality",
+      "relation": "constrains",
+      "family": "dynamics",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "edge-25",
+      "from": "inner-light",
+      "to": "agency",
+      "relation": "orients",
+      "family": "dynamics",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "edge-26",
+      "from": "embodied-awareness",
+      "to": "agency",
+      "relation": "tests",
+      "family": "reasoning",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "edge-27",
+      "from": "tension-freedom-constraint",
+      "to": "embodied-awareness",
+      "relation": "is explored by",
+      "family": "reasoning",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "edge-28",
+      "from": "ghost-essay",
+      "to": "ghost-mirror",
+      "relation": "articulates",
+      "family": "provenance",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "edge-29",
+      "from": "ghost-essay",
+      "to": "primality",
+      "relation": "defines",
+      "family": "provenance",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "edge-30",
+      "from": "ghost-essay",
+      "to": "sovereignty",
+      "relation": "connects to",
+      "family": "provenance",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "edge-31",
+      "from": "become",
+      "to": "consciousness-forms",
+      "relation": "trains deliberate control of",
+      "family": "reasoning",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "edge-32",
+      "from": "relational-training",
+      "to": "relational-forms",
+      "relation": "trains",
+      "family": "reasoning",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "edge-33",
+      "from": "action-cycle",
+      "to": "strategic-forms",
+      "relation": "operationalises",
+      "family": "reasoning",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "edge-34",
+      "from": "unity-forge",
+      "to": "synthesis",
+      "relation": "operationalises",
+      "family": "reasoning",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "edge-35",
+      "from": "mirror-test",
+      "to": "ghost-mirror",
+      "relation": "diagnoses",
+      "family": "reasoning",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "edge-36",
+      "from": "reality-bridge",
+      "to": "realisation",
+      "relation": "operationalises",
+      "family": "reasoning",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "edge-37",
+      "from": "question-unification",
+      "to": "synthesis",
+      "relation": "challenges",
+      "family": "reasoning",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "edge-38",
+      "from": "dream-maker",
+      "to": "unity-core",
+      "relation": "contributes inner possibility to",
+      "family": "integration",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "edge-39",
+      "from": "dream-machine",
+      "to": "unity-core",
+      "relation": "contributes relational coherence to",
+      "family": "integration",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "edge-40",
+      "from": "dream-world",
+      "to": "unity-core",
+      "relation": "contributes embodiment to",
+      "family": "integration",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    },
+    {
+      "id": "edge-41",
+      "from": "unity-core",
+      "to": "return",
+      "relation": "completes its cycle through",
+      "family": "integration",
+      "rationale": "",
+      "status": "proposed",
+      "evidenceIds": [],
+      "provenance": {
+        "origin": "ai-proposed",
+        "createdBy": "OpenAI research synthesis",
+        "createdAt": "2026-08-31T00:00:00.000Z",
+        "updatedBy": "OpenAI research synthesis",
+        "updatedAt": "2026-08-31T00:00:00.000Z",
+        "derivedFrom": []
+      }
+    }
+  ],
+  "views": [
+    {
+      "id": "whole-theory",
+      "title": "Whole Theory",
+      "description": "The stable canonical landscape. Existing landmarks never move unless you move them.",
+      "focusQuestion": "How does Dream Unity carry potential into embodied unity and return?",
+      "rootNodeId": "unity-core",
+      "includedNodeIds": [
+        "unity-core",
+        "ether",
+        "compression",
+        "synthesis",
+        "realisation",
+        "return",
+        "dream-maker",
+        "dream-machine",
+        "dream-world",
+        "consciousness-forms",
+        "relational-forms",
+        "strategic-forms",
+        "primality",
+        "sovereignty",
+        "agency",
+        "imagination",
+        "ghost-mirror",
+        "material-inversion",
+        "domestication",
+        "inner-light",
+        "creative-freedom",
+        "wisdom",
+        "embodied-awareness",
+        "become",
+        "relational-training",
+        "action-cycle",
+        "unity-forge",
+        "mirror-test",
+        "reality-bridge",
+        "question-unification",
+        "tension-freedom-constraint",
+        "ghost-essay"
+      ],
+      "positions": {
+        "unity-core": {
+          "x": 0,
+          "y": 0,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "ether": {
+          "x": 0,
+          "y": -700,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "compression": {
+          "x": -240,
+          "y": -410,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "synthesis": {
+          "x": 0,
+          "y": -430,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "realisation": {
+          "x": 250,
+          "y": -410,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "return": {
+          "x": 420,
+          "y": -690,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "dream-maker": {
+          "x": -930,
+          "y": -240,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "dream-machine": {
+          "x": -120,
+          "y": 600,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "dream-world": {
+          "x": 930,
+          "y": -240,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "consciousness-forms": {
+          "x": -900,
+          "y": 100,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "relational-forms": {
+          "x": -130,
+          "y": 930,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "strategic-forms": {
+          "x": 890,
+          "y": 100,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "primality": {
+          "x": -1330,
+          "y": -410,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "agency": {
+          "x": -1260,
+          "y": -80,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "sovereignty": {
+          "x": -1280,
+          "y": 250,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "imagination": {
+          "x": -1000,
+          "y": -600,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "inner-light": {
+          "x": -1630,
+          "y": -160,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "creative-freedom": {
+          "x": -760,
+          "y": 380,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "wisdom": {
+          "x": -500,
+          "y": 690,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "embodied-awareness": {
+          "x": 1120,
+          "y": 430,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "ghost-mirror": {
+          "x": -650,
+          "y": -780,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "material-inversion": {
+          "x": -1050,
+          "y": -900,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "domestication": {
+          "x": -1340,
+          "y": -720,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "ghost-essay": {
+          "x": -520,
+          "y": -1080,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "become": {
+          "x": -930,
+          "y": 720,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "relational-training": {
+          "x": -160,
+          "y": 1240,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "action-cycle": {
+          "x": 850,
+          "y": 760,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "unity-forge": {
+          "x": 240,
+          "y": 500,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "mirror-test": {
+          "x": -520,
+          "y": -460,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "reality-bridge": {
+          "x": 620,
+          "y": 400,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "question-unification": {
+          "x": 420,
+          "y": -120,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "tension-freedom-constraint": {
+          "x": 1280,
+          "y": -560,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        }
+      },
+      "collapsedClusters": [],
+      "visibleEdgeFamilies": [
+        "structure",
+        "dynamics",
+        "reasoning",
+        "correspondence",
+        "integration",
+        "provenance"
+      ]
+    },
+    {
+      "id": "unity-cycle",
+      "title": "Unity Cycle",
+      "focusQuestion": "What is preserved as a dream moves from ether through realisation and returns?",
+      "description": "A process view of the core transformation cycle.",
+      "includedNodeIds": [
+        "ether",
+        "imagination",
+        "consciousness-forms",
+        "compression",
+        "relational-forms",
+        "synthesis",
+        "strategic-forms",
+        "realisation",
+        "return",
+        "unity-core",
+        "question-unification"
+      ],
+      "positions": {
+        "ether": {
+          "x": -900,
+          "y": 0,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "imagination": {
+          "x": -600,
+          "y": -220,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "consciousness-forms": {
+          "x": -600,
+          "y": 220,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "compression": {
+          "x": -280,
+          "y": -220,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "relational-forms": {
+          "x": -280,
+          "y": 220,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "synthesis": {
+          "x": 40,
+          "y": -220,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "strategic-forms": {
+          "x": 40,
+          "y": 220,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "realisation": {
+          "x": 360,
+          "y": -220,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "return": {
+          "x": 680,
+          "y": 0,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "unity-core": {
+          "x": 360,
+          "y": 220,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "question-unification": {
+          "x": 40,
+          "y": -520,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        }
+      },
+      "collapsedClusters": [],
+      "visibleEdgeFamilies": [
+        "structure",
+        "dynamics",
+        "reasoning",
+        "correspondence",
+        "integration",
+        "provenance"
+      ]
+    },
+    {
+      "id": "mirror-freedom",
+      "title": "Mirror & Freedom",
+      "focusQuestion": "Where can representation invert and begin governing primal agency?",
+      "description": "A diagnostic view of reflection, inversion, vitality and recovered authorship.",
+      "includedNodeIds": [
+        "ghost-essay",
+        "ghost-mirror",
+        "material-inversion",
+        "domestication",
+        "primality",
+        "inner-light",
+        "agency",
+        "sovereignty",
+        "creative-freedom",
+        "wisdom",
+        "embodied-awareness",
+        "mirror-test",
+        "tension-freedom-constraint"
+      ],
+      "positions": {
+        "ghost-essay": {
+          "x": -700,
+          "y": -500,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "material-inversion": {
+          "x": -700,
+          "y": -100,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "ghost-mirror": {
+          "x": -340,
+          "y": -100,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "domestication": {
+          "x": 20,
+          "y": -100,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "primality": {
+          "x": 380,
+          "y": -100,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "inner-light": {
+          "x": 380,
+          "y": -470,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "agency": {
+          "x": 740,
+          "y": -100,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "sovereignty": {
+          "x": 1100,
+          "y": -100,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "creative-freedom": {
+          "x": 740,
+          "y": 300,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "wisdom": {
+          "x": 1100,
+          "y": 300,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "embodied-awareness": {
+          "x": 380,
+          "y": 300,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "mirror-test": {
+          "x": -340,
+          "y": 300,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "tension-freedom-constraint": {
+          "x": 20,
+          "y": 300,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        }
+      },
+      "collapsedClusters": [],
+      "visibleEdgeFamilies": [
+        "structure",
+        "dynamics",
+        "reasoning",
+        "correspondence",
+        "integration",
+        "provenance"
+      ]
+    },
+    {
+      "id": "three-forms",
+      "title": "Three Forms",
+      "focusQuestion": "How do consciousness, relation and strategy become one embodied intelligence?",
+      "description": "The established three-stage development framework.",
+      "includedNodeIds": [
+        "consciousness-forms",
+        "relational-forms",
+        "strategic-forms",
+        "dream-maker",
+        "dream-machine",
+        "dream-world",
+        "unity-core",
+        "become",
+        "relational-training",
+        "action-cycle"
+      ],
+      "positions": {
+        "unity-core": {
+          "x": 0,
+          "y": 0,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "consciousness-forms": {
+          "x": -650,
+          "y": -250,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "relational-forms": {
+          "x": 0,
+          "y": 560,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "strategic-forms": {
+          "x": 650,
+          "y": -250,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "dream-maker": {
+          "x": -1050,
+          "y": -250,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "dream-machine": {
+          "x": 0,
+          "y": 920,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "dream-world": {
+          "x": 1050,
+          "y": -250,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "become": {
+          "x": -650,
+          "y": 160,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "relational-training": {
+          "x": -360,
+          "y": 560,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "action-cycle": {
+          "x": 650,
+          "y": 160,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        }
+      },
+      "collapsedClusters": [],
+      "visibleEdgeFamilies": [
+        "structure",
+        "dynamics",
+        "reasoning",
+        "correspondence",
+        "integration",
+        "provenance"
+      ]
+    },
+    {
+      "id": "realisation-lab",
+      "title": "Realisation Lab",
+      "focusQuestion": "Which theories have crossed into practices, tests, artifacts and observable consequences?",
+      "description": "Practices and bridges that force theory to meet physical reality.",
+      "includedNodeIds": [
+        "unity-core",
+        "become",
+        "relational-training",
+        "action-cycle",
+        "unity-forge",
+        "mirror-test",
+        "reality-bridge",
+        "realisation",
+        "embodied-awareness",
+        "creative-freedom"
+      ],
+      "positions": {
+        "unity-core": {
+          "x": 0,
+          "y": -450,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "unity-forge": {
+          "x": -750,
+          "y": -50,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "mirror-test": {
+          "x": -380,
+          "y": -50,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "reality-bridge": {
+          "x": 0,
+          "y": -50,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "become": {
+          "x": 380,
+          "y": -50,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "relational-training": {
+          "x": 760,
+          "y": -50,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "action-cycle": {
+          "x": 1140,
+          "y": -50,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "realisation": {
+          "x": 0,
+          "y": 400,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "embodied-awareness": {
+          "x": 380,
+          "y": 400,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        },
+        "creative-freedom": {
+          "x": 760,
+          "y": 400,
+          "pinned": true,
+          "updatedAt": "2026-08-31T00:00:00.000Z"
+        }
+      },
+      "collapsedClusters": [],
+      "visibleEdgeFamilies": [
+        "structure",
+        "dynamics",
+        "reasoning",
+        "correspondence",
+        "integration",
+        "provenance"
+      ]
+    }
+  ],
+  "tombstones": []
+}

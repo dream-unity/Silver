@@ -831,3 +831,181 @@ svg { width: 1.2em; height: 1.2em; fill: none; stroke: currentColor; stroke-widt
   .editor-meta > .secondary-button { min-height: 35px; padding: 6px 9px; }
   .editor-dialog .dialog-footer { padding: 8px 14px; }
 }
+
+
+/* Silver Map Your Mind integration — 2026-09-03 */
+.mind-map-card {
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 270px;
+  padding: 30px 24px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  outline: 0;
+  background:
+    radial-gradient(circle at 50% 38%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 42%),
+    linear-gradient(145deg, color-mix(in srgb, var(--surface-2) 94%, var(--accent-soft)), var(--surface-2));
+  color: var(--ink);
+  box-shadow: var(--shadow-soft);
+  text-align: center;
+  cursor: pointer;
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+.mind-map-card::before {
+  content: "";
+  position: absolute;
+  inset: 15px;
+  z-index: -1;
+  opacity: .42;
+  background:
+    radial-gradient(circle at 22% 27%, var(--accent) 0 3px, transparent 4px),
+    radial-gradient(circle at 73% 23%, var(--accent) 0 3px, transparent 4px),
+    radial-gradient(circle at 82% 72%, var(--accent) 0 3px, transparent 4px),
+    radial-gradient(circle at 25% 78%, var(--accent) 0 3px, transparent 4px),
+    linear-gradient(29deg, transparent 49.65%, color-mix(in srgb, var(--accent) 32%, transparent) 49.8% 50.2%, transparent 50.35%),
+    linear-gradient(151deg, transparent 49.65%, color-mix(in srgb, var(--accent) 25%, transparent) 49.8% 50.2%, transparent 50.35%);
+  mask-image: radial-gradient(ellipse at center, black 5%, transparent 76%);
+  pointer-events: none;
+}
+.mind-map-card::after {
+  content: "";
+  position: absolute;
+  inset: auto 18% -50% 18%;
+  z-index: -1;
+  height: 70%;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  filter: blur(35px);
+  pointer-events: none;
+}
+.mind-map-card > * { position: relative; z-index: 1; }
+.mind-map-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--accent) 52%, var(--line));
+  box-shadow: 0 18px 45px rgba(34, 38, 48, .12);
+}
+.mind-map-card:active { transform: translateY(0); }
+.mind-map-card:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent), var(--shadow-soft);
+}
+.mind-map-card .mind-map-symbol {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin-bottom: 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+  border-radius: 17px;
+  background: color-mix(in srgb, var(--accent-soft) 70%, var(--surface-2));
+  color: var(--accent-deep);
+  box-shadow: inset 0 1px rgba(255,255,255,.5), var(--shadow-soft);
+}
+.mind-map-card .mind-map-symbol svg { width: 24px; height: 24px; }
+.mind-map-card .eyebrow { color: var(--accent); }
+.mind-map-card h3 { margin: 10px 0 7px; font-size: clamp(26px, 2.4vw, 34px); }
+.mind-map-card p { max-width: 260px; margin: 0 auto; }
+.mind-map-open-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+  color: var(--accent-deep);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.mind-map-open-label b { font-size: 16px; transition: transform .18s ease; }
+.mind-map-card:hover .mind-map-open-label b { transform: translateX(3px); }
+
+.mind-map-dialog {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  max-width: none;
+  height: var(--silver-visual-viewport-height, 100vh);
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: #05070b;
+  color: white;
+}
+.mind-map-dialog::backdrop { background: #05070b; }
+.mind-map-shell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #05070b;
+}
+.mind-map-shell iframe {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #05070b;
+}
+.mind-map-return {
+  position: absolute;
+  z-index: 5;
+  top: 50%;
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 44px;
+  min-height: 66px;
+  padding: 10px 12px;
+  overflow: hidden;
+  transform: translateY(-50%);
+  border: 1px solid rgba(255,255,255,.18);
+  border-left: 0;
+  border-radius: 0 13px 13px 0;
+  background: rgba(242,244,248,.94);
+  color: #171a21;
+  box-shadow: 0 12px 38px rgba(0,0,0,.32);
+  backdrop-filter: blur(14px);
+  cursor: pointer;
+  transition: width .18s ease, background .18s ease;
+}
+.mind-map-return span { flex: 0 0 auto; font-size: 20px; line-height: 1; }
+.mind-map-return b {
+  overflow: hidden;
+  opacity: 0;
+  font-size: 11px;
+  white-space: nowrap;
+  transition: opacity .12s ease;
+}
+.mind-map-return:hover,
+.mind-map-return:focus-visible { width: 150px; background: white; }
+.mind-map-return:hover b,
+.mind-map-return:focus-visible b { opacity: 1; }
+.mind-map-return:focus-visible {
+  outline: 3px solid rgba(164,174,195,.65);
+  outline-offset: -3px;
+}
+body.mind-map-open { overflow: hidden; }
+
+@media (max-width: 760px) {
+  .mind-map-card { min-height: 230px; }
+  .mind-map-return {
+    top: auto;
+    bottom: max(18px, env(safe-area-inset-bottom));
+    transform: none;
+  }
+}
+
+@media (pointer: coarse) {
+  .mind-map-return:hover,
+  .mind-map-return:focus-visible { width: 44px; }
+  .mind-map-return b { display: none; }
+}

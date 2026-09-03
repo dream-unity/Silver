@@ -198,6 +198,15 @@
     </form>
   </dialog>
 
+  <dialog class="mind-map-dialog" id="mindMapDialog" aria-label="Map Your Mind">
+    <div class="mind-map-shell">
+      <iframe id="mindMapFrame" title="Map Your Mind" src="about:blank" data-src="./mind-map/" loading="lazy" allow="clipboard-read; clipboard-write; fullscreen"></iframe>
+      <button class="mind-map-return" id="closeMindMapButton" type="button" aria-label="Return to Silver" title="Return to Silver">
+        <span aria-hidden="true">←</span><b>Return to Silver</b>
+      </button>
+    </div>
+  </dialog>
+
   <dialog class="dialog media-dialog" id="mediaDialog">
     <section class="media-viewer"><header class="dialog-header"><div><p class="eyebrow" id="mediaViewerType">MEDIA</p><h2 id="mediaViewerTitle">Attachment</h2></div><button class="icon-button" id="closeMediaViewer" type="button"><svg><use href="#icon-close"></use></svg></button></header><div id="mediaViewerBody" class="media-viewer-body"></div><footer class="dialog-footer"><button type="button" class="secondary-button" id="downloadMediaButton"><svg><use href="#icon-download"></use></svg>Download original</button><span></span><button type="button" class="primary-button" id="openMediaEntryButton">Open entry</button></footer></section>
   </dialog>

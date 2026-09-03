@@ -70,7 +70,8 @@ const state = {
   toastTimer: 0,
   viewObjectUrls: new Set(),
   editorObjectUrls: new Set(),
-  viewerObjectUrl: ''
+  viewerObjectUrl: '',
+  mindMapReturnFocus: null
 };
 
 const recorder = {
@@ -109,7 +110,8 @@ function cacheElements() {
     'exportTextButton', 'storageUsage', 'storageMeter', 'storageDetail', 'wipeLibraryButton', 'journalDialog',
     'journalForm', 'journalDialogTitle', 'journalName', 'journalCollection', 'journalColours',
     'deleteJournalButton', 'saveJournalButton', 'mediaDialog', 'mediaViewerType', 'mediaViewerTitle',
-    'mediaViewerBody', 'closeMediaViewer', 'downloadMediaButton', 'openMediaEntryButton', 'lockScreen',
+    'mediaViewerBody', 'closeMediaViewer', 'downloadMediaButton', 'openMediaEntryButton',
+    'mindMapDialog', 'mindMapFrame', 'closeMindMapButton', 'lockScreen',
     'unlockForm', 'unlockPasscode', 'lockError', 'toast'
   ].forEach(id => { el[id] = document.getElementById(id); });
 }
@@ -439,8 +441,6 @@ function renderSearchResults() {
 function renderToday() {
   const todayKey = localDateKey(new Date());
   const todayEntries = state.library.entries.filter(entry => localDateKey(entry.createdAt) === todayKey).sort((a, b) => b.createdAt - a.createdAt);
-  const memories = filteredEntries({ view: 'memories' });
-  const memory = memories[0];
   const allEntries = state.library.entries;
   const streak = computeStreak(allEntries);
   const recent = filteredEntries({ view: 'timeline' }).slice(0, 6);
@@ -448,15 +448,18 @@ function renderToday() {
   const mediaCount = state.library.attachments.length;
   const dateHeading = formatDate(new Date(), { weekday: 'long', day: 'numeric', month: 'long' });
 
-  const memoryMarkup = memory ? `<button class="memory-card" type="button" data-action="open-entry" data-entry-id="${escapeAttribute(memory.id)}">
-      <header><span class="eyebrow">ON THIS DAY</span><span>${new Date().getFullYear() - new Date(memory.createdAt).getFullYear()} years ago</span></header>
-      <div class="memory-content"><span class="memory-year">${new Date(memory.createdAt).getFullYear()}</span><h3>${escapeHtml(memory.title || stripMarkdown(memory.body).slice(0, 70) || 'A past entry')}</h3><p>${escapeHtml(stripMarkdown(memory.body).slice(0, 140) || 'Open this memory.')}</p></div>
-    </button>` : `<div class="memory-card empty-memory"><div class="memory-content">${icon('history')}<h3>Your memories will return here</h3><p>Entries from this calendar date reappear each year.</p></div></div>`;
+  const mindMapMarkup = `<button class="memory-card mind-map-card" type="button" data-action="open-mind-map" aria-label="Map Your Mind" title="Map Your Mind">
+      <span class="mind-map-symbol">${icon('share')}</span>
+      <span class="eyebrow">THOUGHT WORKSPACE</span>
+      <h3>Map Your Mind</h3>
+      <p>Create, connect and explore anything.</p>
+      <span class="mind-map-open-label">Open mind map <b aria-hidden="true">→</b></span>
+    </button>`;
 
   return `${viewHeading('TODAY', dateHeading, todayEntries.length ? `${todayEntries.length} ${todayEntries.length === 1 ? 'entry' : 'entries'} captured today.` : 'A clear place to notice, record and remember.')}
     <section class="today-hero">
       <article class="prompt-card"><p class="eyebrow">TODAY'S PROMPT</p><blockquote>${escapeHtml(promptForToday())}</blockquote><button class="secondary-button" type="button" data-action="prompt-entry">Write from this prompt</button></article>
-      ${memoryMarkup}
+      ${mindMapMarkup}
     </section>
     <section class="stats-row" aria-label="Journal statistics">
       <article class="stat-card"><strong>${allEntries.length}</strong><span>Total entries</span></article>
@@ -609,6 +612,26 @@ function setView(view) {
   renderAll();
   closeSidebar();
   window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function openMindMap(trigger = null) {
+  state.mindMapReturnFocus = trigger instanceof HTMLElement ? trigger : null;
+  if (el.mindMapFrame.dataset.loaded !== 'true') {
+    el.mindMapFrame.src = el.mindMapFrame.dataset.src || './mind-map/';
+    el.mindMapFrame.dataset.loaded = 'true';
+  }
+  if (!el.mindMapDialog.open) el.mindMapDialog.showModal();
+  document.body.classList.add('mind-map-open');
+}
+
+function closeMindMap() {
+  if (el.mindMapDialog.open) el.mindMapDialog.close();
+  document.body.classList.remove('mind-map-open');
+  const returnTarget = state.mindMapReturnFocus;
+  state.mindMapReturnFocus = null;
+  if (returnTarget?.isConnected) {
+    requestAnimationFrame(() => returnTarget.focus({ preventScroll: true }));
+  }
 }
 
 function openSidebar() {
@@ -1772,7 +1795,8 @@ function bindEvents() {
     if (!actionElement) return;
     const action = actionElement.dataset.action;
     const entryId = actionElement.dataset.entryId || actionElement.closest('[data-entry-id]')?.dataset.entryId;
-    if (action === 'new-entry') openEditor();
+    if (action === 'open-mind-map') openMindMap(actionElement);
+    else if (action === 'new-entry') openEditor();
     else if (action === 'prompt-entry') openEditor(null, { title: 'Daily reflection', body: `> ${promptForToday()}\n\n` });
     else if (action === 'open-entry' && entryId) openEditor(entryId);
     else if (action === 'open-media') openMediaViewer(actionElement.dataset.attachmentId);
@@ -1875,6 +1899,13 @@ function bindEvents() {
     else await persistJournalFromDialog();
   });
   el.deleteJournalButton.addEventListener('click', removeCurrentJournal);
+
+  el.closeMindMapButton.addEventListener('click', closeMindMap);
+  el.mindMapDialog.addEventListener('cancel', event => {
+    event.preventDefault();
+    if (document.activeElement !== el.mindMapFrame) closeMindMap();
+  });
+  el.mindMapDialog.addEventListener('close', () => document.body.classList.remove('mind-map-open'));
 
   el.closeMediaViewer.addEventListener('click', closeMediaViewer);
   el.downloadMediaButton.addEventListener('click', downloadViewedMedia);

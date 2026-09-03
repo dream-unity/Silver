@@ -1,4 +1,4 @@
-const CACHE_NAME = 'silver-shell-v5-recorder-viewport';
+const CACHE_NAME = 'silver-shell-v5-map-your-mind';
 const SHELL = [
   './', './index.html', './bootstrap.js',
   './src/shell.html', './src/styles.css', './src/app.js', './src/db.js', './src/archive.js',
@@ -35,7 +35,8 @@ self.addEventListener('fetch', event => {
 
   const isRuntimeCode = event.request.mode === 'navigate'
     || url.pathname.endsWith('/bootstrap.js')
-    || url.pathname.includes('/src/');
+    || url.pathname.includes('/src/')
+    || url.pathname.includes('/mind-map/');
   if (isRuntimeCode) {
     event.respondWith(networkFirst(event.request));
     return;

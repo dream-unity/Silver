@@ -1,4 +1,4 @@
-const BUILD = '20260901-recorder-viewport-2';
+const BUILD = '20260903-map-your-mind-1';
 const versioned = path => `${path}?v=${BUILD}`;
 
 const assets = {

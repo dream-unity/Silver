@@ -1,0 +1,6 @@
+{
+  "repository": "dream-unity/theory",
+  "commit": "78c88c42d2c45f46db480b6499bda90556ba944c",
+  "deploymentBase": "/Silver/mind-map/",
+  "integration": "This is the tested static build of the pinned Theory application. Silver loads it only after Map Your Mind is selected."
+}

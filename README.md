@@ -86,3 +86,10 @@ The repository is deployed from `main` to:
 https://dream-unity.github.io/Silver/
 
 All application paths are relative, so the PWA works correctly under the `/Silver/` project path.
+
+
+## Map Your Mind integration
+
+The Today dashboard's upper-right card opens a full-screen, isolated copy of the Theory mind-mapping application. The exact pinned functional source is retained under `mind-map-source/`; its tested static build is under `mind-map/`. Silver loads that build only after **Map Your Mind** is selected, so the journal, recorder, IndexedDB data and existing navigation remain independent.
+
+The integrated copy is pinned to `dream-unity/theory` commit `78c88c42d2c45f46db480b6499bda90556ba944c`. The upstream repository is read only: Silver's integration never writes to or modifies `dream-unity/theory`.
