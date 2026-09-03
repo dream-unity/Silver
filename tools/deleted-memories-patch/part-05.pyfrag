@@ -1,5 +1,16 @@
 
 
+def correct_mind_map_attachment_type() -> None:
+    path = "mind-map-source/src/lib/deleted-memories.ts"
+    text = read(path)
+    text = text.replace(
+        "attachment: { id: string; title: string; url: string },",
+        "attachment: { id: string; title: string; url?: string },",
+        1,
+    )
+    write(path, text)
+
+
 def verify_source() -> None:
     required = [
         "deleted-memories.js",
@@ -77,6 +88,7 @@ def apply_all() -> None:
     patch_root_shell()
     patch_root_styles()
     patch_mind_map()
+    correct_mind_map_attachment_type()
     patch_tooling()
     verify_source()
 
