@@ -1,0 +1,448 @@
+
+
+def patch_deleted_memory_engine() -> None:
+    path = "deleted-memories.js"
+    text = read(path)
+    if "async function restoreMindMapAttachment" not in text:
+        restore = r'''async function restoreMindMapAttachment(memory) {
+  const payload = memory.payload || {};
+  const mapId = payload.mapId;
+  const thoughtId = payload.thoughtId;
+  const originalAttachment = payload.attachment;
+  if (!mapId || !thoughtId || !originalAttachment) throw new Error('This recovery record is missing its map attachment.');
+  const key = MAP_DOCUMENT_KEY(mapId);
+  const raw = localStorage.getItem(key);
+  if (!raw) {
+    const error = new Error('Restore the mind map that owned this attachment first.');
+    error.code = 'PARENT_MISSING';
+    throw error;
+  }
+  const document = JSON.parse(raw);
+  document.thoughts = Array.isArray(document.thoughts) ? document.thoughts : [];
+  const thought = document.thoughts.find(item => item.id === thoughtId);
+  if (!thought) {
+    const error = new Error('Restore the mind-map thought that owned this attachment first.');
+    error.code = 'PARENT_MISSING';
+    throw error;
+  }
+  thought.attachments = Array.isArray(thought.attachments) ? thought.attachments : [];
+  const attachmentIds = new Set(thought.attachments.map(item => item.id));
+  const attachmentId = attachmentIds.has(originalAttachment.id) ? uniqueRecordId(attachmentIds, 'a') : originalAttachment.id;
+  thought.attachments.push({ ...originalAttachment, id: attachmentId });
+  document.updatedAt = new Date().toISOString();
+  localStorage.setItem(key, JSON.stringify(document));
+  const library = readMapLibrary();
+  writeMapLibrary({
+    ...library,
+    items: library.items.map(item => item.id === mapId ? mapMetaFromDocument(mapId, document, item.template) : item)
+  });
+  await deleteRecords([memory.id], 'mind-map-attachment-restored');
+  return { kind: memory.kind, title: memory.title, restoredId: attachmentId };
+}
+
+'''
+        text = replace_once(
+            text,
+            "export async function restoreDeletedMemory(id) {",
+            restore + "export async function restoreDeletedMemory(id) {",
+            "mind-map attachment restore function",
+        )
+    if "memory.kind === 'mind-map-attachment'" not in text:
+        text = replace_once(
+            text,
+            "  else if (memory.kind === 'mind-map-thought') result = await restoreMindMapThought(memory);\n  else throw new Error",
+            "  else if (memory.kind === 'mind-map-thought') result = await restoreMindMapThought(memory);\n  else if (memory.kind === 'mind-map-attachment') result = await restoreMindMapAttachment(memory);\n  else throw new Error",
+            "mind-map attachment restore routing",
+        )
+    if "'mind-map-attachment': 'Mind-map attachment'" not in text:
+        text = replace_once(
+            text,
+            "    'mind-map-thought': 'Mind-map thought'\n  })[kind]",
+            "    'mind-map-thought': 'Mind-map thought',\n    'mind-map-attachment': 'Mind-map attachment'\n  })[kind]",
+            "mind-map attachment type label",
+        )
+    write(path, text)
+
+
+def patch_mind_map_deleted_module() -> None:
+    path = "mind-map-source/src/lib/deleted-memories.ts"
+    text = read(path)
+    text = text.replace(
+        "kind: 'mind-map' | 'mind-map-thought'",
+        "kind: 'mind-map' | 'mind-map-thought' | 'mind-map-attachment'",
+        1,
+    )
+    if "moveMindMapAttachmentToDeletedMemories" not in text:
+        function = r'''
+export async function moveMindMapAttachmentToDeletedMemories(
+  mapId: string,
+  mapTitle: string,
+  thoughtId: string,
+  thoughtTitle: string,
+  attachment: { id: string; title: string; url: string },
+) {
+  if (!mapId || !thoughtId || !attachment) return null
+  return put(record({
+    kind: 'mind-map-attachment',
+    originalId: attachment.id,
+    title: attachment.title || 'Mind-map attachment',
+    summary: attachment.url || `Removed from ${thoughtTitle || 'a thought'}`,
+    sourceTitle: `${mapTitle || 'Map Your Mind'} · ${thoughtTitle || 'Thought'}`,
+    payload: { mapId, mapTitle, thoughtId, thoughtTitle, attachment },
+  }), 'mind-map-attachment-deleted')
+}
+
+'''
+        text = replace_once(
+            text,
+            "export function openSharedDeletedMemories() {",
+            function + "export function openSharedDeletedMemories() {",
+            "mind-map attachment recovery writer",
+        )
+    write(path, text)
+
+
+def deleted_memories_launcher_component() -> str:
+    return r'''import { useEffect, useState } from 'react'
+import {
+  getDeletedMemoryCount,
+  openSharedDeletedMemories,
+  subscribeDeletedMemories,
+} from '../lib/deleted-memories'
+
+export function DeletedMemoriesButton() {
+  const [count, setCount] = useState(0)
+
+  useEffect(() => {
+    let active = true
+    const refresh = () => {
+      getDeletedMemoryCount()
+        .then((value) => {
+          if (active) setCount(value)
+        })
+        .catch(() => {
+          if (active) setCount(0)
+        })
+    }
+    refresh()
+    const unsubscribe = subscribeDeletedMemories(refresh)
+    const expiryCheck = window.setInterval(refresh, 60 * 60 * 1000)
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') refresh()
+    }
+    document.addEventListener('visibilitychange', onVisibility)
+    return () => {
+      active = false
+      unsubscribe()
+      window.clearInterval(expiryCheck)
+      document.removeEventListener('visibilitychange', onVisibility)
+    }
+  }, [])
+
+  const label = count
+    ? `Deleted Memories, ${count} recoverable ${count === 1 ? 'item' : 'items'}`
+    : 'Deleted Memories'
+
+  return (
+    <button
+      type="button"
+      className="deleted-memories-launcher"
+      onClick={openSharedDeletedMemories}
+      aria-label={label}
+      title="Deleted Memories"
+    >
+      <svg aria-hidden="true" viewBox="0 0 24 24">
+        <path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 11v6M14 11v6" />
+      </svg>
+      <span>Deleted Memories</span>
+      {count > 0 ? <b>{count}</b> : null}
+    </button>
+  )
+}
+'''
+
+
+def patch_mind_map_store() -> None:
+    path = "mind-map-source/src/lib/store.ts"
+    text = read(path)
+    if "moveMindMapToDeletedMemories" not in text:
+        text = replace_once(
+            text,
+            "import { uid, nowIso } from './ids'\n",
+            "import { uid, nowIso } from './ids'\nimport { moveMindMapToDeletedMemories } from './deleted-memories'\n",
+            "mind-map recovery import",
+        )
+    if "deleteBrainToDeletedMemories" not in text:
+        function = r'''
+export async function deleteBrainToDeletedMemories(id: string): Promise<BrainLibrary> {
+  const library = loadLibrary()
+  const meta = library.items.find((item) => item.id === id)
+  const document = loadBrain(id)
+  if (!meta || !document) return deleteBrain(id)
+  await moveMindMapToDeletedMemories(id, meta, document)
+  return deleteBrain(id)
+}
+
+'''
+        text = replace_once(
+            text,
+            "export function loadDocument(): BrainDocument {",
+            function + "export function loadDocument(): BrainDocument {",
+            "recoverable mind-map deletion function",
+        )
+    write(path, text)
+
+
+def patch_mind_map_start_menu() -> None:
+    path = "mind-map-source/src/components/StartMenu.tsx"
+    text = read(path)
+    if "DeletedMemoriesButton" not in text:
+        text = replace_once(
+            text,
+            "import type { BrainMeta } from '../types'\n",
+            "import type { BrainMeta } from '../types'\nimport { DeletedMemoriesButton } from './DeletedMemoriesButton'\n",
+            "Deleted Memories launcher import in map menu",
+        )
+        text = replace_once(
+            text,
+            "      </section>\n    </div>\n  )",
+            "      </section>\n      <DeletedMemoriesButton />\n    </div>\n  )",
+            "Deleted Memories launcher in map menu",
+        )
+    text = text.replace("onDelete: (id: string) => void", "onDelete: (id: string) => void | Promise<void>", 1)
+    text = text.replace("onClick={() => onDelete(item.id)}", "onClick={() => void onDelete(item.id)}", 1)
+    write(path, text)
+
+
+def patch_mind_map_app() -> None:
+    path = "mind-map-source/src/App.tsx"
+    text = read(path)
+    if "deleteBrainToDeletedMemories" not in text:
+        text = replace_once(
+            text,
+            "  deleteBrain,\n  exportDocument,",
+            "  deleteBrain,\n  deleteBrainToDeletedMemories,\n  exportDocument,",
+            "recoverable map deletion import",
+        )
+    if "from './lib/deleted-memories'" not in text:
+        imports = r'''import {
+  moveMindMapAttachmentToDeletedMemories,
+  moveMindMapThoughtToDeletedMemories,
+  subscribeDeletedMemories,
+} from './lib/deleted-memories'
+import { DeletedMemoriesButton } from './components/DeletedMemoriesButton'
+'''
+        text = replace_once(
+            text,
+            "import { StartMenu } from './components/StartMenu'\n",
+            "import { StartMenu } from './components/StartMenu'\n" + imports,
+            "mind-map Deleted Memories imports",
+        )
+    if "subscribeDeletedMemories(() =>" not in text:
+        subscription = r'''
+  useEffect(() => {
+    return subscribeDeletedMemories(() => {
+      const nextLibrary = loadLibrary()
+      setLibrary(nextLibrary)
+      if (!brainId) return
+      const nextDocument = loadBrain(brainId)
+      if (nextDocument) {
+        setDoc(nextDocument)
+      } else if (!nextLibrary.items.some((item) => item.id === brainId)) {
+        setBrainId(null)
+        setDoc(null)
+        setComposer(null)
+      }
+    })
+  }, [brainId])
+'''
+        text = replace_once(
+            text,
+            "  useEffect(() => {\n    setLibrary(loadLibrary())\n  }, [])\n",
+            "  useEffect(() => {\n    setLibrary(loadLibrary())\n  }, [])\n" + subscription,
+            "mind-map recovery synchronization",
+        )
+    text = text.replace(
+        "        setDoc((current) => (current ? forgetThought(current, current.activeId) : current))",
+        "        void forgetThoughtWithRecovery(doc.activeId)",
+        1,
+    )
+    text = text.replace(
+        "    window.addEventListener('keydown', onKey)\n    return () => window.removeEventListener('keydown', onKey)\n  }, [doc])",
+        "    window.addEventListener('keydown', onKey)\n    return () => window.removeEventListener('keydown', onKey)\n  }, [doc, brainId])",
+        1,
+    )
+    if "async function deleteBrainWithRecovery" not in text:
+        handlers = r'''
+  async function deleteBrainWithRecovery(id: string) {
+    const item = library.items.find((entry) => entry.id === id)
+    if (!item) return
+    if (!window.confirm(`Move “${item.title}” to Deleted Memories? It can be restored for 30 days.`)) return
+    try {
+      const next = await deleteBrainToDeletedMemories(id)
+      setLibrary(next)
+      if (brainId === id) {
+        setBrainId(null)
+        setDoc(null)
+        setComposer(null)
+      }
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : 'The mind map could not be moved to Deleted Memories.')
+    }
+  }
+
+  async function forgetThoughtWithRecovery(id: string) {
+    if (!brainId || !doc || id === doc.homeId) return
+    const thought = doc.thoughts.find((item) => item.id === id && !item.forgotten)
+    if (!thought) return
+    if (!window.confirm(`Move “${thought.name}” to Deleted Memories? It can be restored for 30 days.`)) return
+    try {
+      await moveMindMapThoughtToDeletedMemories(brainId, doc.title, doc, id)
+      setDoc((current) => (current ? forgetThought(current, id) : current))
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : 'The thought could not be moved to Deleted Memories.')
+    }
+  }
+
+  async function detachWithRecovery(attachmentId: string) {
+    if (!brainId || !doc) return
+    const thought = doc.thoughts.find((item) => item.id === doc.activeId)
+    const attachment = thought?.attachments.find((item) => item.id === attachmentId)
+    if (!thought || !attachment) return
+    if (!window.confirm(`Move “${attachment.title || 'Attachment'}” to Deleted Memories? It can be restored for 30 days.`)) return
+    try {
+      await moveMindMapAttachmentToDeletedMemories(brainId, doc.title, thought.id, thought.name, attachment)
+      setDoc((current) => (current ? removeAttachment(current, thought.id, attachmentId) : current))
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : 'The attachment could not be moved to Deleted Memories.')
+    }
+  }
+'''
+        text = replace_once(
+            text,
+            "  if (!brainId || !doc) {",
+            handlers + "\n  if (!brainId || !doc) {",
+            "mind-map recovery handlers",
+        )
+    text = regex_once(
+        text,
+        r"        onDelete=\{\(id\) => \{\n          setLibrary\(deleteBrain\(id\)\)\n          if \(brainId === id\) \{\n            setBrainId\(null\)\n            setDoc\(null\)\n          \}\n        \}\}",
+        "        onDelete={(id) => void deleteBrainWithRecovery(id)}",
+        "first recoverable map delete handler",
+    )
+    text = text.replace(
+        "        onDelete={(id) => setLibrary(deleteBrain(id))}",
+        "        onDelete={(id) => void deleteBrainWithRecovery(id)}",
+        1,
+    )
+    text = text.replace(
+        "              onForget={(id) => setDoc((current) => (current ? forgetThought(current, id) : current))}",
+        "              onForget={(id) => void forgetThoughtWithRecovery(id)}",
+        1,
+    )
+    text = text.replace(
+        "          onForget={() => setDoc((current) => (current ? forgetThought(current, safeActive.id) : current))}",
+        "          onForget={() => void forgetThoughtWithRecovery(safeActive.id)}",
+        1,
+    )
+    text = text.replace(
+        "          onDetach={(id) => setDoc((current) => (current ? removeAttachment(current, safeActive.id, id) : current))}",
+        "          onDetach={(id) => void detachWithRecovery(id)}",
+        1,
+    )
+    if "<DeletedMemoriesButton />\n    </div>\n  )\n}" not in text:
+        text = replace_once(
+            text,
+            "      ) : null}\n    </div>\n  )\n}\n\nfunction isTyping",
+            "      ) : null}\n      <DeletedMemoriesButton />\n    </div>\n  )\n}\n\nfunction isTyping",
+            "Deleted Memories launcher in active mind map",
+        )
+    write(path, text)
+
+
+def map_deleted_styles() -> str:
+    return r'''
+
+/* Silver Deleted Memories — shared map launcher */
+.deleted-memories-launcher {
+  position: fixed;
+  z-index: 60;
+  left: 20px;
+  bottom: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 42px;
+  padding: 9px 13px;
+  border: 1px solid rgba(180, 200, 220, .24);
+  border-radius: 11px;
+  background: rgba(17, 23, 33, .94);
+  color: #dce6f2;
+  box-shadow: 0 14px 35px rgba(0, 0, 0, .34);
+  backdrop-filter: blur(14px);
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: .01em;
+}
+.deleted-memories-launcher:hover,
+.deleted-memories-launcher:focus-visible {
+  border-color: rgba(186, 207, 235, .55);
+  background: #182231;
+  outline: 0;
+  transform: translateY(-1px);
+}
+.deleted-memories-launcher:focus-visible { box-shadow: 0 0 0 3px rgba(148, 163, 184, .25), 0 14px 35px rgba(0, 0, 0, .34); }
+.deleted-memories-launcher svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.deleted-memories-launcher b {
+  display: grid;
+  place-items: center;
+  min-width: 21px;
+  height: 21px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #dce6f2;
+  color: #111721;
+  font-size: 10px;
+  line-height: 1;
+}
+.brain-shell .past-list { padding-left: 190px; }
+
+@media (max-width: 720px) {
+  .deleted-memories-launcher {
+    left: max(12px, env(safe-area-inset-left));
+    bottom: max(12px, env(safe-area-inset-bottom));
+    min-height: 40px;
+    padding: 8px 11px;
+  }
+  .brain-shell .past-list { padding-left: 175px; }
+}
+
+@media (max-width: 430px) {
+  .deleted-memories-launcher span { max-width: 105px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+'''
+
+
+def patch_mind_map_styles() -> None:
+    path = "mind-map-source/src/styles.css"
+    text = read(path)
+    if "Silver Deleted Memories — shared map launcher" not in text:
+        text += map_deleted_styles()
+    write(path, text)
+
+
+def patch_mind_map() -> None:
+    patch_mind_map_deleted_module()
+    write("mind-map-source/src/components/DeletedMemoriesButton.tsx", deleted_memories_launcher_component())
+    patch_mind_map_store()
+    patch_mind_map_start_menu()
+    patch_mind_map_app()
+    patch_mind_map_styles()
