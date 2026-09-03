@@ -1,0 +1,468 @@
+name: Integrate Theory mind map into Silver
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/integrate-theory-mind-map.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: silver-theory-mind-map-integration
+  cancel-in-progress: false
+
+jobs:
+  integrate:
+    runs-on: ubuntu-latest
+    env:
+      THEORY_REPOSITORY: dream-unity/theory
+      THEORY_COMMIT: 78c88c42d2c45f46db480b6499bda90556ba944c
+      SILVER_BUILD: 20260903-map-your-mind-1
+    steps:
+      - name: Check out Silver
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Copy the pinned Theory application into its isolated namespace
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/silver-theory-upstream mind-map-source mind-map
+          git clone --quiet https://github.com/${THEORY_REPOSITORY}.git /tmp/silver-theory-upstream
+          git -C /tmp/silver-theory-upstream checkout --quiet "${THEORY_COMMIT}"
+          test "$(git -C /tmp/silver-theory-upstream rev-parse HEAD)" = "${THEORY_COMMIT}"
+
+          mkdir -p mind-map-source
+          rsync -a --delete \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='dist' \
+            /tmp/silver-theory-upstream/ mind-map-source/
+
+          python3 <<'PY'
+          from pathlib import Path
+          import json
+          import os
+
+          source = Path('mind-map-source')
+          config_path = source / 'vite.config.ts'
+          config = config_path.read_text()
+          upstream_base = "base: command === 'serve' ? '/' : '/theory/',"
+          silver_base = "base: command === 'serve' ? '/' : '/Silver/mind-map/',"
+          if upstream_base not in config:
+              raise SystemExit('The pinned Theory deployment base was not found.')
+          config_path.write_text(config.replace(upstream_base, silver_base, 1))
+
+          metadata = {
+              'repository': os.environ['THEORY_REPOSITORY'],
+              'commit': os.environ['THEORY_COMMIT'],
+              'deploymentBase': '/Silver/mind-map/',
+              'integration': 'The functional Theory application is namespaced and loaded only by Silver’s Map Your Mind dialog.'
+          }
+          (source / 'UPSTREAM.json').write_text(json.dumps(metadata, indent=2) + '\n')
+          PY
+
+      - name: Set up the Theory build toolchain
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: mind-map-source/package-lock.json
+
+      - name: Test and build the copied Theory application
+        shell: bash
+        run: |
+          set -euo pipefail
+          pushd mind-map-source >/dev/null
+          npm ci
+          npm test
+          npm run build
+          popd >/dev/null
+
+          cp -a mind-map-source/dist mind-map
+          cp mind-map-source/UPSTREAM.json mind-map/UPSTREAM.json
+          rm -rf mind-map-source/node_modules mind-map-source/dist
+
+          test -s mind-map/index.html
+          test -s mind-map/assets/app.js
+          test -s mind-map/assets/app.css
+          test -s mind-map/data/theory.json
+          test -s mind-map/runtime-config.json
+          grep -Fq '/Silver/mind-map/assets/app.js' mind-map/index.html
+          grep -Fq '/Silver/mind-map/assets/app.css' mind-map/index.html
+
+          for file in mind-map/assets/*.js; do
+            cp "$file" /tmp/silver-theory-check.mjs
+            node --check /tmp/silver-theory-check.mjs
+          done
+
+      - name: Add the Silver-only launch button and full-screen bridge
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+          import re
+          import os
+
+          build = os.environ['SILVER_BUILD']
+
+          app_path = Path('src/app.js')
+          app = app_path.read_text()
+
+          if 'mindMapReturnFocus' not in app:
+              old = "  viewerObjectUrl: ''\n};"
+              new = "  viewerObjectUrl: '',\n  mindMapReturnFocus: null\n};"
+              if old not in app:
+                  raise SystemExit('Could not locate the Silver state object insertion point.')
+              app = app.replace(old, new, 1)
+
+          if "'mindMapDialog'" not in app:
+              old = "    'mediaViewerBody', 'closeMediaViewer', 'downloadMediaButton', 'openMediaEntryButton', 'lockScreen',"
+              new = "    'mediaViewerBody', 'closeMediaViewer', 'downloadMediaButton', 'openMediaEntryButton',\n    'mindMapDialog', 'mindMapFrame', 'closeMindMapButton', 'lockScreen',"
+              if old not in app:
+                  raise SystemExit('Could not locate the Silver element cache insertion point.')
+              app = app.replace(old, new, 1)
+
+          app = app.replace("  const memories = filteredEntries({ view: 'memories' });\n  const memory = memories[0];\n", '', 1)
+
+          if 'const mindMapMarkup' not in app:
+              start = app.find('  const memoryMarkup = memory ?')
+              if start < 0:
+                  raise SystemExit('Could not locate the Today memory card.')
+              end = app.find('\n\n  return ', start)
+              if end < 0:
+                  raise SystemExit('Could not locate the end of the Today memory card.')
+              replacement = '''  const mindMapMarkup = `<button class="memory-card mind-map-card" type="button" data-action="open-mind-map" aria-label="Map Your Mind" title="Map Your Mind">
+      <span class="mind-map-symbol">${icon('share')}</span>
+      <span class="eyebrow">THOUGHT WORKSPACE</span>
+      <h3>Map Your Mind</h3>
+      <p>Create, connect and explore anything.</p>
+      <span class="mind-map-open-label">Open mind map <b aria-hidden="true">→</b></span>
+    </button>`;'''
+              app = app[:start] + replacement + app[end:]
+
+          if '${memoryMarkup}' in app:
+              app = app.replace('${memoryMarkup}', '${mindMapMarkup}', 1)
+          if '${mindMapMarkup}' not in app:
+              raise SystemExit('The Today view does not reference the Map Your Mind card.')
+
+          if 'function openMindMap(' not in app:
+              marker = 'function openSidebar()'
+              insertion = '''function openMindMap(trigger = null) {
+  state.mindMapReturnFocus = trigger instanceof HTMLElement ? trigger : null;
+  if (el.mindMapFrame.dataset.loaded !== 'true') {
+    el.mindMapFrame.src = el.mindMapFrame.dataset.src || './mind-map/';
+    el.mindMapFrame.dataset.loaded = 'true';
+  }
+  if (!el.mindMapDialog.open) el.mindMapDialog.showModal();
+  document.body.classList.add('mind-map-open');
+}
+
+function closeMindMap() {
+  if (el.mindMapDialog.open) el.mindMapDialog.close();
+  document.body.classList.remove('mind-map-open');
+  const returnTarget = state.mindMapReturnFocus;
+  state.mindMapReturnFocus = null;
+  if (returnTarget?.isConnected) {
+    requestAnimationFrame(() => returnTarget.focus({ preventScroll: true }));
+  }
+}
+
+'''
+              if marker not in app:
+                  raise SystemExit('Could not locate the Silver sidebar functions.')
+              app = app.replace(marker, insertion + marker, 1)
+
+          old_action = "    if (action === 'new-entry') openEditor();"
+          new_action = "    if (action === 'open-mind-map') openMindMap(actionElement);\n    else if (action === 'new-entry') openEditor();"
+          if "action === 'open-mind-map'" not in app:
+              if old_action not in app:
+                  raise SystemExit('Could not locate the Silver delegated action handler.')
+              app = app.replace(old_action, new_action, 1)
+
+          if "el.closeMindMapButton.addEventListener" not in app:
+              marker = "  el.closeMediaViewer.addEventListener('click', closeMediaViewer);"
+              insertion = '''  el.closeMindMapButton.addEventListener('click', closeMindMap);
+  el.mindMapDialog.addEventListener('cancel', event => {
+    event.preventDefault();
+    if (document.activeElement !== el.mindMapFrame) closeMindMap();
+  });
+  el.mindMapDialog.addEventListener('close', () => document.body.classList.remove('mind-map-open'));
+
+'''
+              if marker not in app:
+                  raise SystemExit('Could not locate the media dialog event bindings.')
+              app = app.replace(marker, insertion + marker, 1)
+
+          app_path.write_text(app)
+
+          shell_path = Path('src/shell.html')
+          shell = shell_path.read_text()
+          if 'id="mindMapDialog"' not in shell:
+              marker = '  <dialog class="dialog media-dialog" id="mediaDialog">'
+              dialog = '''  <dialog class="mind-map-dialog" id="mindMapDialog" aria-label="Map Your Mind">
+    <div class="mind-map-shell">
+      <iframe id="mindMapFrame" title="Map Your Mind" src="about:blank" data-src="./mind-map/" loading="lazy" allow="clipboard-read; clipboard-write; fullscreen"></iframe>
+      <button class="mind-map-return" id="closeMindMapButton" type="button" aria-label="Return to Silver" title="Return to Silver">
+        <span aria-hidden="true">←</span><b>Return to Silver</b>
+      </button>
+    </div>
+  </dialog>
+
+'''
+              if marker not in shell:
+                  raise SystemExit('Could not locate the Silver media dialog insertion point.')
+              shell = shell.replace(marker, dialog + marker, 1)
+          shell_path.write_text(shell)
+
+          css_path = Path('src/styles.css')
+          css = css_path.read_text()
+          marker = '/* Silver Map Your Mind integration — 2026-09-03 */'
+          if marker not in css:
+              css += r'''
+
+/* Silver Map Your Mind integration — 2026-09-03 */
+.mind-map-card {
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 270px;
+  padding: 30px 24px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  outline: 0;
+  background:
+    radial-gradient(circle at 50% 38%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 42%),
+    linear-gradient(145deg, color-mix(in srgb, var(--surface-2) 94%, var(--accent-soft)), var(--surface-2));
+  color: var(--ink);
+  box-shadow: var(--shadow-soft);
+  text-align: center;
+  cursor: pointer;
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+.mind-map-card::before {
+  content: "";
+  position: absolute;
+  inset: 15px;
+  z-index: -1;
+  opacity: .42;
+  background:
+    radial-gradient(circle at 22% 27%, var(--accent) 0 3px, transparent 4px),
+    radial-gradient(circle at 73% 23%, var(--accent) 0 3px, transparent 4px),
+    radial-gradient(circle at 82% 72%, var(--accent) 0 3px, transparent 4px),
+    radial-gradient(circle at 25% 78%, var(--accent) 0 3px, transparent 4px),
+    linear-gradient(29deg, transparent 49.65%, color-mix(in srgb, var(--accent) 32%, transparent) 49.8% 50.2%, transparent 50.35%),
+    linear-gradient(151deg, transparent 49.65%, color-mix(in srgb, var(--accent) 25%, transparent) 49.8% 50.2%, transparent 50.35%);
+  mask-image: radial-gradient(ellipse at center, black 5%, transparent 76%);
+  pointer-events: none;
+}
+.mind-map-card::after {
+  content: "";
+  position: absolute;
+  inset: auto 18% -50% 18%;
+  z-index: -1;
+  height: 70%;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  filter: blur(35px);
+  pointer-events: none;
+}
+.mind-map-card > * { position: relative; z-index: 1; }
+.mind-map-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--accent) 52%, var(--line));
+  box-shadow: 0 18px 45px rgba(34, 38, 48, .12);
+}
+.mind-map-card:active { transform: translateY(0); }
+.mind-map-card:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent), var(--shadow-soft);
+}
+.mind-map-card .mind-map-symbol {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin-bottom: 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+  border-radius: 17px;
+  background: color-mix(in srgb, var(--accent-soft) 70%, var(--surface-2));
+  color: var(--accent-deep);
+  box-shadow: inset 0 1px rgba(255,255,255,.5), var(--shadow-soft);
+}
+.mind-map-card .mind-map-symbol svg { width: 24px; height: 24px; }
+.mind-map-card .eyebrow { color: var(--accent); }
+.mind-map-card h3 { margin: 10px 0 7px; font-size: clamp(26px, 2.4vw, 34px); }
+.mind-map-card p { max-width: 260px; margin: 0 auto; }
+.mind-map-open-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+  color: var(--accent-deep);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.mind-map-open-label b { font-size: 16px; transition: transform .18s ease; }
+.mind-map-card:hover .mind-map-open-label b { transform: translateX(3px); }
+
+.mind-map-dialog {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  max-width: none;
+  height: var(--silver-visual-viewport-height, 100vh);
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: #05070b;
+  color: white;
+}
+.mind-map-dialog::backdrop { background: #05070b; }
+.mind-map-shell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #05070b;
+}
+.mind-map-shell iframe {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #05070b;
+}
+.mind-map-return {
+  position: absolute;
+  z-index: 5;
+  top: 50%;
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 44px;
+  min-height: 66px;
+  padding: 10px 12px;
+  overflow: hidden;
+  transform: translateY(-50%);
+  border: 1px solid rgba(255,255,255,.18);
+  border-left: 0;
+  border-radius: 0 13px 13px 0;
+  background: rgba(242,244,248,.94);
+  color: #171a21;
+  box-shadow: 0 12px 38px rgba(0,0,0,.32);
+  backdrop-filter: blur(14px);
+  cursor: pointer;
+  transition: width .18s ease, background .18s ease;
+}
+.mind-map-return span { flex: 0 0 auto; font-size: 20px; line-height: 1; }
+.mind-map-return b {
+  overflow: hidden;
+  opacity: 0;
+  font-size: 11px;
+  white-space: nowrap;
+  transition: opacity .12s ease;
+}
+.mind-map-return:hover,
+.mind-map-return:focus-visible { width: 150px; background: white; }
+.mind-map-return:hover b,
+.mind-map-return:focus-visible b { opacity: 1; }
+.mind-map-return:focus-visible { outline: 3px solid rgba(164,174,195,.65); outline-offset: -3px; }
+body.mind-map-open { overflow: hidden; }
+
+@media (max-width: 760px) {
+  .mind-map-card { min-height: 230px; }
+  .mind-map-return { top: auto; bottom: max(18px, env(safe-area-inset-bottom)); transform: none; }
+}
+
+@media (pointer: coarse) {
+  .mind-map-return:hover,
+  .mind-map-return:focus-visible { width: 44px; }
+  .mind-map-return b { display: none; }
+}
+'''
+          css_path.write_text(css)
+
+          bootstrap_path = Path('bootstrap.js')
+          bootstrap = bootstrap_path.read_text()
+          bootstrap, count = re.subn(r"const BUILD = '[^']+';", f"const BUILD = '{build}';", bootstrap, count=1)
+          if count != 1:
+              raise SystemExit('Could not update the Silver runtime build identifier.')
+          bootstrap_path.write_text(bootstrap)
+
+          index_path = Path('index.html')
+          index = index_path.read_text()
+          index, count = re.subn(r'bootstrap\.js\?v=[^"\']+', f'bootstrap.js?v={build}', index, count=1)
+          if count != 1:
+              raise SystemExit('Could not update the Silver bootstrap URL.')
+          index_path.write_text(index)
+
+          sw_path = Path('sw.js')
+          sw = sw_path.read_text()
+          sw, count = re.subn(r"const CACHE_NAME = '[^']+';", "const CACHE_NAME = 'silver-shell-v5-map-your-mind';", sw, count=1)
+          if count != 1:
+              raise SystemExit('Could not update the Silver service-worker cache name.')
+          if "url.pathname.includes('/mind-map/')" not in sw:
+              old = "    || url.pathname.includes('/src/');"
+              new = "    || url.pathname.includes('/src/')\n    || url.pathname.includes('/mind-map/');"
+              if old not in sw:
+                  raise SystemExit('Could not locate the Silver runtime request policy.')
+              sw = sw.replace(old, new, 1)
+          sw_path.write_text(sw)
+
+          readme_path = Path('README.md')
+          readme = readme_path.read_text()
+          heading = '## Map Your Mind integration'
+          if heading not in readme:
+              readme += f'''\n\n{heading}\n\nThe Today dashboard’s upper-right card opens a full-screen, isolated copy of the Theory mind-mapping application. The functional upstream source is retained under `mind-map-source/`; its tested static build is under `mind-map/`. Silver loads that build only after **Map Your Mind** is selected, so the journal, recorder, IndexedDB data and existing navigation remain independent.\n\nThe integrated copy is pinned to `dream-unity/theory` commit `{os.environ['THEORY_COMMIT']}`. The upstream repository is never written to or modified by Silver.\n'''
+          readme_path.write_text(readme)
+          PY
+
+      - name: Verify the isolated integration before committing
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check bootstrap.js
+          node --check sw.js
+          node --check src/app.js
+          grep -Fq 'data-action="open-mind-map"' src/app.js
+          grep -Fq 'id="mindMapDialog"' src/shell.html
+          grep -Fq 'Silver Map Your Mind integration' src/styles.css
+          grep -Fq "${SILVER_BUILD}" bootstrap.js
+          grep -Fq "${SILVER_BUILD}" index.html
+          grep -Fq "url.pathname.includes('/mind-map/')" sw.js
+          test -s mind-map/index.html
+          test -s mind-map-source/src/App.tsx
+          test -s mind-map-source/src/components/Plex.tsx
+          test -s mind-map-source/src/lib/store.ts
+          git diff --check -- src/app.js src/shell.html src/styles.css bootstrap.js index.html sw.js README.md
+
+      - name: Commit the namespaced Theory copy and Silver bridge
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add mind-map mind-map-source src/app.js src/shell.html src/styles.css bootstrap.js index.html sw.js README.md
+          if git diff --cached --quiet; then
+            echo 'The Theory mind-map integration is already current.'
+            exit 0
+          fi
+          git commit -m "Add Map Your Mind with isolated Theory application"
+          git pull --rebase origin main
+          git push origin HEAD:main
